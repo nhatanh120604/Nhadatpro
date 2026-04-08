@@ -279,7 +279,7 @@ export async function createUnit(
         furnishingStatus: toNullableString(parsed.data.furnishingStatus),
         defaultMonthlyRent: toNullableNumber(parsed.data.defaultMonthlyRent),
         defaultDeposit: toNullableNumber(parsed.data.defaultDeposit),
-        occupancyStatus: parsed.data.occupancyStatus,
+        occupancyStatus: 'VACANT',
       },
       select: { id: true },
     });
@@ -361,7 +361,6 @@ export async function updateUnit(
         furnishingStatus: toNullableString(parsed.data.furnishingStatus),
         defaultMonthlyRent: toNullableNumber(parsed.data.defaultMonthlyRent),
         defaultDeposit: toNullableNumber(parsed.data.defaultDeposit),
-        occupancyStatus: parsed.data.occupancyStatus,
       },
       select: { id: true },
     });

@@ -1,7 +1,5 @@
 import { z } from 'zod';
 
-export const occupancyStatusSchema = z.enum(['VACANT', 'OCCUPIED', 'MAINTENANCE']);
-
 const nullableDecimalInput = z
   .union([z.number(), z.string(), z.null(), z.undefined()])
   .transform((value) => {
@@ -44,7 +42,6 @@ export const createUnitSchema = z.object({
     .or(z.literal('')),
   defaultMonthlyRent: nullableDecimalInput,
   defaultDeposit: nullableDecimalInput,
-  occupancyStatus: occupancyStatusSchema.default('VACANT'),
 });
 
 export const updateUnitSchema = createUnitSchema.extend({

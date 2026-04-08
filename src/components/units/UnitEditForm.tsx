@@ -73,10 +73,6 @@ export function UnitEditForm({ rolePrefix }: { rolePrefix: 'owner' | 'manager' }
       furnishingStatus: String(formData.get('furnishingStatus') || ''),
       defaultMonthlyRent: formData.get('defaultMonthlyRent') ? Number(formData.get('defaultMonthlyRent')) : null,
       defaultDeposit: formData.get('defaultDeposit') ? Number(formData.get('defaultDeposit')) : null,
-      occupancyStatus: String(formData.get('occupancyStatus') || unit.occupancyStatus) as
-        | 'VACANT'
-        | 'OCCUPIED'
-        | 'MAINTENANCE',
     });
 
     if (response.success) {
@@ -201,7 +197,6 @@ export function UnitEditForm({ rolePrefix }: { rolePrefix: 'owner' | 'manager' }
             <div className="space-y-2 md:col-span-2">
               <label className="text-sm font-semibold text-brand-ink">Tình trạng sử dụng</label>
               <input className="input-shell w-full cursor-not-allowed px-4 py-3 opacity-70" disabled readOnly value={occupancyLabel} />
-              <input name="occupancyStatus" type="hidden" value={unit.occupancyStatus} />
               <p className="text-xs text-brand-muted">Trạng thái thuê hiện được giữ nguyên để tránh ảnh hưởng tới hợp đồng và quy trình vận hành.</p>
             </div>
           </div>

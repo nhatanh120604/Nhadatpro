@@ -1,5 +1,6 @@
 ﻿'use server';
 
+import { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import {
   assertPropertyOwner,
@@ -57,6 +58,15 @@ type ManagerAssignmentRequestRow = {
   managerPhone: string | null;
   requestedAt: string;
 };
+
+async function lockManagerAssignmentApprovalResources(
+  tx: Prisma.TransactionClient,
+  requestId: bigint,
+  propertyId: bigint,
+) {
+  await tx.$queryRaw`SELECT manager_assignment_request_id FROM manager_assignment_requests WHERE manager_assignment_request_id = ${requestId} FOR UPDATE`;
+  await tx.$queryRaw`SELECT property_id FROM properties WHERE property_id = ${propertyId} FOR UPDATE`;
+}
 
 export async function generatePropertyManagerInviteCode(
   payload: PropertyInviteInput
@@ -392,9 +402,25 @@ export async function approveManagerAssignmentRequest(
     const today = new Date();
 
     await prisma.$transaction(async (tx) => {
+      await lockManagerAssignmentApprovalResources(tx, request.id, request.propertyId);
+
+      const freshRequest = await tx.managerAssignmentRequest.findUnique({
+        where: { id: request.id },
+        select: {
+          id: true,
+          status: true,
+          propertyId: true,
+          managerId: true,
+        },
+      });
+
+      if (!freshRequest || freshRequest.status !== 'PENDING') {
+        throw new Error('REQUEST_NOT_PENDING');
+      }
+
       const existingPropertyAssignment = await tx.propertyManagerAssignment.findFirst({
         where: {
-          propertyId: request.propertyId,
+          propertyId: freshRequest.propertyId,
           status: 'ACTIVE',
         },
         select: { id: true },
@@ -406,8 +432,8 @@ export async function approveManagerAssignmentRequest(
 
       const existingAssignment = await tx.propertyManagerAssignment.findFirst({
         where: {
-          propertyId: request.propertyId,
-          managerId: request.managerId,
+          propertyId: freshRequest.propertyId,
+          managerId: freshRequest.managerId,
           status: 'ACTIVE',
         },
         select: { id: true },
@@ -419,8 +445,8 @@ export async function approveManagerAssignmentRequest(
 
       await tx.propertyManagerAssignment.create({
         data: {
-          propertyId: request.propertyId,
-          managerId: request.managerId,
+          propertyId: freshRequest.propertyId,
+          managerId: freshRequest.managerId,
           startDate: today,
           salaryType: 'FIXED_MONTHLY',
           baseSalary: 0,
@@ -432,7 +458,7 @@ export async function approveManagerAssignmentRequest(
       const reviewTime = new Date();
 
       await tx.managerAssignmentRequest.update({
-        where: { id: request.id },
+        where: { id: freshRequest.id },
         data: {
           status: 'APPROVED',
           reviewedAt: reviewTime,
@@ -443,10 +469,10 @@ export async function approveManagerAssignmentRequest(
 
       await tx.managerAssignmentRequest.updateMany({
         where: {
-          propertyId: request.propertyId,
+          propertyId: freshRequest.propertyId,
           status: 'PENDING',
           NOT: {
-            id: request.id,
+            id: freshRequest.id,
           },
         },
         data: {
@@ -459,14 +485,14 @@ export async function approveManagerAssignmentRequest(
 
       await tx.propertyManagerInviteCode.updateMany({
         where: {
-          propertyId: request.propertyId,
+          propertyId: freshRequest.propertyId,
           revokedAt: null,
         },
         data: {
           revokedAt: reviewTime,
         },
       });
-    });
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
 
     return { success: true, message: 'Manager assigned successfully' };
   } catch (error) {
@@ -476,6 +502,10 @@ export async function approveManagerAssignmentRequest(
 
     if (error instanceof Error && error.message === 'MANAGER_ALREADY_ASSIGNED') {
       return { success: false, message: 'Manager is already assigned to this property' };
+    }
+
+    if (error instanceof Error && error.message === 'REQUEST_NOT_PENDING') {
+      return { success: false, message: 'Manager assignment request is no longer available' };
     }
 
     return { success: false, ...normalizeActionError(error, 'Failed to approve manager assignment request') };
@@ -615,3 +645,7 @@ export async function leaveManagedProperty(
     return { success: false, ...normalizeActionError(error, 'Failed to leave managed property') };
   }
 }
+
+
+
+

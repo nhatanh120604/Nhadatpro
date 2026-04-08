@@ -1,5 +1,6 @@
 ﻿'use server';
 
+import { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
 import {
   assertPropertyAccess,
@@ -133,6 +134,17 @@ async function getUnitWithProperty(unitId: bigint) {
       },
     },
   });
+}
+
+async function lockUnitConnectionApprovalResources(
+  tx: Prisma.TransactionClient,
+  requestId: bigint,
+  unitId: bigint,
+  tenantId: bigint,
+) {
+  await tx.$queryRaw`SELECT unit_connection_request_id FROM unit_connection_requests WHERE unit_connection_request_id = ${requestId} FOR UPDATE`;
+  await tx.$queryRaw`SELECT unit_id FROM units WHERE unit_id = ${unitId} FOR UPDATE`;
+  await tx.$queryRaw`SELECT user_id FROM users WHERE user_id = ${tenantId} FOR UPDATE`;
 }
 
 export async function generateUnitInviteCode(
@@ -561,17 +573,33 @@ export async function approveUnitConnectionAndCreateLease(
     const endDate = parseDateInput(parsed.data.endDate);
 
     const result = await prisma.$transaction(async (tx) => {
+      await lockUnitConnectionApprovalResources(tx, request.id, request.unitId, request.tenantId);
+
+      const freshRequest = await tx.unitConnectionRequest.findUnique({
+        where: { id: request.id },
+        select: {
+          id: true,
+          status: true,
+          unitId: true,
+          tenantId: true,
+        },
+      });
+
+      if (!freshRequest || freshRequest.status !== 'PENDING') {
+        throw new Error('REQUEST_NOT_PENDING');
+      }
+
       const [activeUnitLease, activeTenantLease] = await Promise.all([
         tx.lease.findFirst({
           where: {
-            unitId: request.unitId,
+            unitId: freshRequest.unitId,
             status: 'ACTIVE',
           },
           select: { id: true },
         }),
         tx.lease.findFirst({
           where: {
-            tenantId: request.tenantId,
+            tenantId: freshRequest.tenantId,
             status: 'ACTIVE',
           },
           select: { id: true },
@@ -588,8 +616,8 @@ export async function approveUnitConnectionAndCreateLease(
 
       const lease = await tx.lease.create({
         data: {
-          unitId: request.unitId,
-          tenantId: request.tenantId,
+          unitId: freshRequest.unitId,
+          tenantId: freshRequest.tenantId,
           startDate,
           endDate,
           dueDayOfMonth: parsed.data.dueDayOfMonth,
@@ -603,7 +631,7 @@ export async function approveUnitConnectionAndCreateLease(
       });
 
       await tx.unit.update({
-        where: { id: request.unitId },
+        where: { id: freshRequest.unitId },
         data: {
           occupancyStatus: 'OCCUPIED',
           vacantSince: null,
@@ -611,7 +639,7 @@ export async function approveUnitConnectionAndCreateLease(
       });
 
       await tx.unitConnectionRequest.update({
-        where: { id: request.id },
+        where: { id: freshRequest.id },
         data: {
           status: 'APPROVED',
           reviewedAt: new Date(),
@@ -626,11 +654,11 @@ export async function approveUnitConnectionAndCreateLease(
         where: {
           status: 'PENDING',
           OR: [
-            { unitId: request.unitId },
-            { tenantId: request.tenantId },
+            { unitId: freshRequest.unitId },
+            { tenantId: freshRequest.tenantId },
           ],
           NOT: {
-            id: request.id,
+            id: freshRequest.id,
           },
         },
         data: {
@@ -643,7 +671,7 @@ export async function approveUnitConnectionAndCreateLease(
 
       await tx.unitInviteCode.updateMany({
         where: {
-          unitId: request.unitId,
+          unitId: freshRequest.unitId,
           revokedAt: null,
         },
         data: {
@@ -652,7 +680,7 @@ export async function approveUnitConnectionAndCreateLease(
       });
 
       return lease;
-    });
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
 
     return {
       success: true,
@@ -666,6 +694,10 @@ export async function approveUnitConnectionAndCreateLease(
 
     if (error instanceof Error && error.message === 'TENANT_ALREADY_LEASED') {
       return { success: false, message: 'This tenant already has an active lease' };
+    }
+
+    if (error instanceof Error && error.message === 'REQUEST_NOT_PENDING') {
+      return { success: false, message: 'Connection request is no longer available' };
     }
 
     return { success: false, ...normalizeActionError(error, 'Failed to approve request and create lease') };
@@ -948,3 +980,7 @@ export async function executeLeaseTermination(
     return { success: false, ...normalizeActionError(error, 'Failed to terminate lease') };
   }
 }
+
+
+
+

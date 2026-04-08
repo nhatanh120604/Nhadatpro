@@ -31,7 +31,6 @@ export default function NewUnitPage() {
       furnishingStatus: (formData.get('furnishingStatus') as string) || undefined,
       defaultMonthlyRent: formData.get('defaultMonthlyRent') ? Number(formData.get('defaultMonthlyRent')) : null,
       defaultDeposit: formData.get('defaultDeposit') ? Number(formData.get('defaultDeposit')) : null,
-      occupancyStatus: 'VACANT' as const,
     };
 
     const response = await createUnit(data);
