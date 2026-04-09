@@ -773,7 +773,6 @@ export async function deleteProperty(
         where: { id: propertyId },
         data: {
           status: 'ARCHIVED',
-          totalUnits: 0,
         },
       });
     });
