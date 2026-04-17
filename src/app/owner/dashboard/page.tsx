@@ -66,7 +66,7 @@ export default function OwnerDashboardPage() {
         <div className="shell-card p-7 md:p-8">
           <p className="warm-badge">Tổng quan danh mục</p>
           <h1 className="mt-5 max-w-2xl font-headline text-5xl font-extrabold leading-tight text-brand-ink">
-            Quản lý tài sản, tỷ lệ lấp đầy và luồng yêu cầu trong một màn hình.
+           Kiểm soát toàn diện tài sản, hợp đồng và khách thuê của bạn
           </h1>
           <p className="mt-5 max-w-2xl text-lg leading-8 text-brand-muted">
             Theo dõi nhanh hiệu suất vận hành để ra quyết định về hợp đồng, phân công quản lý và khai thác tài sản hiệu quả hơn.
