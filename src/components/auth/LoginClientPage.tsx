@@ -9,170 +9,126 @@ import { ArrowRight, Building2, KeyRound, Mail } from 'lucide-react';
 import { loginAction } from '@/features/auth/auth.actions';
 import { loginSchema, type LoginInput } from '@/features/auth/auth.validation';
 
-type LoginClientPageProps = {
-  googleAuthEnabled: boolean;
-};
-
-export function LoginClientPage({ googleAuthEnabled }: LoginClientPageProps) {
+export function LoginClientPage({ googleAuthEnabled }: { googleAuthEnabled: boolean }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState(searchParams.get('error') || '');
   const [loading, setLoading] = useState(false);
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<LoginInput>({
+  
+  const { register, handleSubmit, formState: { errors } } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
   });
 
   const onSubmit = async (data: LoginInput) => {
     setLoading(true);
     setError('');
-
     const response = await loginAction(data);
-
     if (response.success && response.data?.redirectTo) {
       router.push(response.data.redirectTo);
       return;
     }
-
     setError(response.message || 'Không thể đăng nhập lúc này');
     setLoading(false);
   };
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_left_top,rgba(245,158,11,0.16),transparent_24rem),linear-gradient(180deg,#fffdfa_0%,#f6efe7_100%)] px-4 py-8 md:px-8 md:py-12">
-      <div className="mx-auto grid max-w-6xl overflow-hidden rounded-[2rem] border border-brand-border bg-white/75 shadow-[0_30px_80px_rgba(115,72,0,0.08)] backdrop-blur md:grid-cols-[1.05fr_0.95fr]">
-        <section className="relative hidden min-h-[720px] overflow-hidden bg-[linear-gradient(180deg,#f8f3ed_0%,#f2ebe2_100%)] p-12 md:flex md:flex-col md:justify-between">
-          <div className="absolute inset-y-0 left-0 w-40 bg-[radial-gradient(circle_at_center,rgba(245,158,11,0.18),transparent_65%)]" />
-          <div className="relative z-10">
-            <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-primary-deep to-brand-primary text-white shadow-lg shadow-amber-900/25">
-                <Building2 className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="font-headline text-2xl font-extrabold text-brand-ink">Nha Dat Pro</p>
-                <p className="text-[11px] uppercase tracking-[0.25em] text-brand-muted">Quản lý tài sản chuyên nghiệp</p>
-              </div>
-            </div>
-
-            <div className="mt-20 max-w-xl">
-              <p className="text-balance font-headline text-6xl font-extrabold leading-[0.95] text-brand-ink">
-                Quản lý bất động sản <span className="text-brand-primary-deep">chuyên nghiệp</span> và liền mạch.
-              </p>
-              <p className="mt-8 max-w-lg text-xl leading-9 text-brand-muted">
-                Đơn giản hóa vận hành, quản lý hợp đồng, kết nối người thuê và điều phối quản gia trong một nền tảng duy nhất.
-              </p>
-            </div>
+    <div className="min-h-screen bg-[#F8F5EE] font-sans antialiased">
+      <div className="flex min-h-screen flex-col items-center justify-center px-6 py-12">
+        
+        <div className="mb-12 flex flex-col items-center text-center">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-[20px] bg-[#D98725] text-white shadow-xl shadow-[#D98725]/15">
+            <Building2 className="h-8 w-8" />
           </div>
+          <h1 className="text-3xl font-black tracking-tight text-[#1A1A1A]">Dia Oc Hub</h1>
+          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#D98725] opacity-90">Nền tảng quản lý tài sản</p>
+        </div>
 
-          <div className="relative z-10 shell-panel max-w-md p-6">
-            <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#424b52] text-white">
-                <Building2 className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-lg font-bold text-brand-ink">Anh Minh Tuấn</p>
-                <p className="text-sm text-brand-muted">Chủ chuỗi căn hộ dịch vụ tại Quận 1</p>
-              </div>
+        <div className="w-full max-w-[460px] rounded-[48px] border border-[#E8E1D6] bg-white p-12 shadow-[0_20px_50px_rgba(217,135,37,0.08)]">
+          
+          <header className="mb-10 text-center">
+            <h2 className="text-2xl font-black text-[#1A1A1A]">Chào mừng trở lại</h2>
+            <p className="mt-2 text-sm font-bold text-[#757575]">Nhập thông tin để truy cập hệ thống</p>
+          </header>
+
+          {error && (
+            <div className="mb-8 rounded-2xl bg-[#FCEDED] p-4 text-center text-xs font-bold text-[#D34545]">
+              {error}
             </div>
-            <p className="mt-5 text-lg italic leading-8 text-brand-muted">
-              “Từ khi dùng Nha Dat Pro, tôi tiết kiệm được rất nhiều thời gian cho việc thu phí, theo dõi hợp đồng và xử lý yêu cầu hằng ngày.”
-            </p>
-          </div>
-        </section>
+          )}
 
-        <section className="flex min-h-[720px] items-center bg-white/86 px-6 py-10 md:px-12">
-          <div className="mx-auto w-full max-w-md">
-            <div className="mb-8 space-y-3">
-              <p className="text-sm font-semibold uppercase tracking-[0.25em] text-brand-primary-deep">Chào mừng trở lại</p>
-              <h1 className="font-headline text-4xl font-extrabold text-brand-ink">Đăng nhập hệ thống</h1>
-              <p className="text-base leading-7 text-brand-muted">
-                Vui lòng đăng nhập để tiếp tục quản lý tài sản, hợp đồng và quy trình vận hành.
-              </p>
-            </div>
-
-            {error ? (
-              <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {error}
+          <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
+            <div className="space-y-2">
+              <label className="ml-1 text-[11px] font-black uppercase tracking-widest text-[#757575]" htmlFor="email">Email</label>
+              <div className="relative group">
+                <Mail className="absolute left-5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#757575]/50 transition-colors group-focus-within:text-[#D98725]" />
+                <input
+                  {...register('email')}
+                  className="w-full rounded-2xl border border-[#E8E1D6] bg-[#F8F5EE] py-[18px] pl-[52px] pr-4 text-[15px] font-bold text-[#1A1A1A] outline-none transition-all focus:border-[#D98725] focus:bg-white focus:ring-4 focus:ring-[#D98725]/10 placeholder:text-[#757575]/70"
+                  id="email"
+                  placeholder="owner@pmh.com"
+                  type="email"
+                />
               </div>
-            ) : null}
-
-            <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
-              <div className="space-y-2">
-                <label className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-muted" htmlFor="email">
-                  Email của bạn
-                </label>
-                <div className="input-shell flex items-center gap-3 px-4 py-0">
-                  <Mail className="h-4 w-4 text-brand-muted" />
-                  <input
-                    {...register('email')}
-                    className="w-full border-0 bg-transparent px-0 py-3.5 outline-none"
-                    id="email"
-                    placeholder="owner@pmh.com"
-                    type="email"
-                  />
-                </div>
-                {errors.email ? <p className="text-xs text-red-600">{errors.email.message}</p> : null}
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-semibold uppercase tracking-[0.18em] text-brand-muted" htmlFor="password">
-                  Mật khẩu
-                </label>
-                <div className="input-shell flex items-center gap-3 px-4 py-0">
-                  <KeyRound className="h-4 w-4 text-brand-muted" />
-                  <input
-                    {...register('password')}
-                    className="w-full border-0 bg-transparent px-0 py-3.5 outline-none"
-                    id="password"
-                    placeholder="Password123!"
-                    type="password"
-                  />
-                </div>
-                {errors.password ? <p className="text-xs text-red-600">{errors.password.message}</p> : null}
-              </div>
-
-              <button className="btn-primary w-full px-5 py-4 text-base" disabled={loading} type="submit">
-                <span>{loading ? 'Đang đăng nhập...' : 'Đăng nhập'}</span>
-                <ArrowRight className="h-4 w-4" />
-              </button>
-            </form>
-
-            <div className="my-6 flex items-center gap-3">
-              <div className="h-px flex-1 bg-brand-border" />
-              <span className="text-xs font-semibold uppercase tracking-[0.22em] text-brand-muted">hoặc</span>
-              <div className="h-px flex-1 bg-brand-border" />
+              {errors.email && <p className="ml-1 text-[11px] font-bold text-[#D34545]">{errors.email.message}</p>}
             </div>
 
-            {googleAuthEnabled ? (
-              <Link className="btn-secondary w-full justify-center px-5 py-4 text-base" href="/auth/google/start">
-                <span>Tiếp tục với Google</span>
-              </Link>
-            ) : (
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-7 text-amber-900">
-                Đăng nhập Google chưa được cấu hình trong môi trường hiện tại. Hãy thêm <span className="font-semibold">GOOGLE_CLIENT_ID</span> và{' '}
-                <span className="font-semibold">GOOGLE_CLIENT_SECRET</span>, rồi khởi động lại máy chủ phát triển.
+            <div className="space-y-2">
+              <label className="ml-1 text-[11px] font-black uppercase tracking-widest text-[#757575]" htmlFor="password">Mật khẩu</label>
+              <div className="relative group">
+                <KeyRound className="absolute left-5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#757575]/50 transition-colors group-focus-within:text-[#D98725]" />
+                <input
+                  {...register('password')}
+                  className="w-full rounded-2xl border border-[#E8E1D6] bg-[#F8F5EE] py-[18px] pl-[52px] pr-4 text-[15px] font-bold text-[#1A1A1A] outline-none transition-all focus:border-[#D98725] focus:bg-white focus:ring-4 focus:ring-[#D98725]/10 placeholder:text-[#757575]/70"
+                  id="password"
+                  placeholder="••••••••"
+                  type="password"
+                />
               </div>
-            )}
-
-            <div className="my-8 grid gap-3 rounded-2xl border border-brand-border bg-brand-soft/65 p-4 text-sm text-brand-muted">
-              <p className="font-semibold text-brand-ink">Tài khoản mẫu</p>
-              <p>Sau khi seed lại dữ liệu, tất cả tài khoản mẫu dùng mật khẩu <span className="font-semibold text-brand-primary-deep">Password123!</span>.</p>
-              <p>Người thuê và quản gia mới có thể tự đăng ký ngay từ trang này.</p>
+              {errors.password && <p className="ml-1 text-[11px] font-bold text-[#D34545]">{errors.password.message}</p>}
             </div>
 
-            <div className="grid gap-3 md:grid-cols-2">
-              <Link className="btn-primary px-4 py-3 text-sm" href="/register">
-                Chọn vai trò để đăng ký
-              </Link>
-              <Link className="btn-secondary px-4 py-3 text-sm" href="/register/owner">
-                Tạo tài khoản chủ sở hữu
+            <button 
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#D98725] py-[18px] text-[15px] font-black text-white transition-all hover:bg-[#C2771F] hover:shadow-lg hover:shadow-[#D98725]/20 active:scale-[0.98] disabled:opacity-50"
+              disabled={loading} 
+              type="submit"
+            >
+              <span>{loading ? 'Đang đăng nhập...' : 'Đăng nhập ngay'}</span>
+              {!loading && <ArrowRight className="h-4 w-4" />}
+            </button>
+          </form>
+
+          {googleAuthEnabled && (
+            <div className="mt-10">
+              <div className="relative mb-8 flex items-center justify-center">
+                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-[#E8E1D6]" /></div>
+                <span className="relative bg-white px-4 text-[10px] font-black uppercase tracking-widest text-[#757575]">Hoặc</span>
+              </div>
+              <Link 
+                className="flex w-full items-center justify-center rounded-2xl border border-[#E8E1D6] py-4 text-sm font-bold text-[#1A1A1A] transition-all hover:bg-[#F8F5EE]" 
+                href="/auth/google/start"
+              >
+                Tiếp tục với Google
               </Link>
             </div>
+          )}
+        </div>
+
+        <div className="mt-12 flex flex-col items-center gap-6">
+          <div className="flex items-center gap-8">
+            <Link className="text-[13px] font-bold text-[#757575] transition-colors hover:text-[#D98725]" href="/register">
+              Đăng ký người thuê
+            </Link>
+            <div className="h-4 w-px bg-[#E8E1D6]" />
+            <Link className="text-[13px] font-black text-[#D98725] transition-opacity hover:opacity-80" href="/register/owner">
+              Tạo tài khoản Chủ sở hữu
+            </Link>
           </div>
-        </section>
+          
+          <p className="max-w-[320px] text-center text-[11px] font-bold uppercase tracking-widest text-[#757575]">
+            Hệ thống quản lý tài sản chuyên nghiệp
+          </p>
+        </div>
+
       </div>
     </div>
   );

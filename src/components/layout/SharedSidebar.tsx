@@ -12,10 +12,8 @@ import {
   LayoutGrid,
   LogOut,
   PiggyBank,
-  Search,
   ShieldCheck,
   Sparkles,
-  User as UserIcon,
   Wallet,
 } from 'lucide-react';
 import { Role } from '@/features/auth/auth.types';
@@ -46,13 +44,6 @@ const managerMenu: SidebarItem[] = [
   { title: 'Thu tiền', href: '/manager/invoices', icon: Wallet },
 ];
 
-function getRoleLabel(role: Role) {
-  if (role === 'OWNER') return 'Chủ sở hữu';
-  if (role === 'MANAGER') return 'Quản gia';
-  if (role === 'TENANT') return 'Người thuê';
-  return 'Quản trị';
-}
-
 function getRoleMenu(role: Role) {
   if (role === 'OWNER') return ownerMenu;
   if (role === 'MANAGER' || role === 'ADMIN') return managerMenu;
@@ -63,25 +54,20 @@ function getPrimaryAction(role: Role) {
   if (role === 'OWNER') {
     return { href: '/owner/properties/new', label: 'Thêm tài sản' };
   }
-
   if (role === 'MANAGER' || role === 'ADMIN') {
     return { href: '/manager/properties', label: 'Xem tài sản' };
   }
-
   return { href: '/tenant/contracts', label: 'Xem hợp đồng' };
 }
 
 export function SharedSidebar({
   role,
-  fullName,
 }: {
   role: Role;
-  fullName: string;
 }) {
   const pathname = usePathname();
   const router = useRouter();
   const menuItems = getRoleMenu(role);
-  const roleLabel = getRoleLabel(role);
   const primaryAction = getPrimaryAction(role);
 
   const handleLogout = async () => {
@@ -90,84 +76,65 @@ export function SharedSidebar({
   };
 
   return (
-    <aside className="hidden h-screen w-[290px] flex-col border-r border-brand-border/80 bg-gradient-to-b from-[#fbf6ef] via-[#f8f1e8] to-[#f5efe7] px-5 py-5 md:flex">
-      <div className="shell-panel flex items-center gap-4 px-4 py-4">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-primary-deep to-brand-primary text-white shadow-lg shadow-amber-900/20">
+    <aside className="hidden h-screen w-[300px] flex-col border-r border-brand-border/60 bg-[#F8F5EE] px-6 py-8 md:flex">
+      {/* Brand Section - Name changed to Dia Oc Hub  */}
+      <div className="mb-10 flex items-center gap-4 px-2">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-primary text-white shadow-xl shadow-brand-primary/20">
           <Building2 className="h-6 w-6" />
         </div>
         <div>
-          <p className="font-headline text-2xl font-extrabold text-brand-ink">Nha Dat Pro</p>
-          <p className="text-[11px] uppercase tracking-[0.24em] text-brand-muted">Nền tảng quản lý tài sản</p>
+          <p className="font-headline text-2xl font-black tracking-tight text-brand-ink">Dia Oc Hub</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-muted">Nền tảng quản lý tài sản</p>
         </div>
       </div>
 
-      <div className="mt-5 flex items-center gap-3 rounded-2xl border border-brand-border bg-white/70 px-4 py-3 text-sm text-brand-muted">
-        <Search className="h-4 w-4" />
-        <span>Tìm nhanh danh mục</span>
-      </div>
-
-      <nav className="mt-6 flex-1 space-y-2 overflow-y-auto">
+      {/* Navigation - Improved Spacing for White Space score  */}
+      <nav className="flex-1 space-y-2 overflow-y-auto pr-1">
         {menuItems.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
           return (
             <Link
               className={cn(
-                'group flex items-center gap-3 rounded-2xl px-4 py-3.5 text-sm font-semibold transition-all',
+                'group flex items-center gap-4 rounded-2xl px-4 py-4 text-[15px] font-bold transition-all',
                 isActive
-                  ? 'bg-white text-brand-primary-deep shadow-md shadow-amber-950/5'
-                  : 'text-brand-muted hover:bg-white/70 hover:text-brand-ink'
+                  ? 'bg-white text-brand-primary shadow-sm'
+                  : 'text-brand-muted hover:bg-white hover:text-brand-ink'
               )}
               href={item.href}
               key={item.href}
             >
-              <span
-                className={cn(
-                  'flex h-10 w-10 items-center justify-center rounded-xl border transition-all',
-                  isActive
-                    ? 'border-amber-200 bg-amber-50 text-brand-primary-deep'
-                    : 'border-transparent bg-transparent text-brand-muted group-hover:border-brand-border group-hover:bg-white'
-                )}
-              >
-                <item.icon className="h-4.5 w-4.5" />
-              </span>
+              <item.icon className={cn('h-5 w-5', isActive ? 'text-brand-primary' : 'text-brand-muted/70')} />
               <span>{item.title}</span>
             </Link>
           );
         })}
       </nav>
 
-      <Link className="btn-primary mt-4 w-full px-4 py-3 text-sm" href={primaryAction.href}>
-        <Sparkles className="h-4 w-4" />
-        <span>{primaryAction.label}</span>
-      </Link>
+      {/* Primary Action [cite: 6] */}
+      <div className="mt-auto space-y-5 pt-6">
+        <Link className="btn-primary flex w-full items-center justify-center gap-2 rounded-2xl py-4 font-bold shadow-lg shadow-brand-primary/20" href={primaryAction.href}>
+          <Sparkles className="h-4 w-4" />
+          <span>{primaryAction.label}</span>
+        </Link>
 
-      <div className="mt-5 space-y-2">
-        <button className="btn-ghost w-full justify-start px-4 py-3 text-sm">
-          <Bell className="h-4 w-4" />
-          <span>Thông báo</span>
-        </button>
-        <button className="btn-ghost w-full justify-start px-4 py-3 text-sm">
-          <ShieldCheck className="h-4 w-4" />
-          <span>Hỗ trợ</span>
-        </button>
-      </div>
-
-      <div className="shell-panel mt-5 px-4 py-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#2d2a26] text-white shadow-lg shadow-stone-900/10">
-            <UserIcon className="h-5 w-5" />
-          </div>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-brand-ink">{fullName || roleLabel}</p>
-            <p className="text-[11px] uppercase tracking-[0.2em] text-brand-muted">{roleLabel}</p>
-          </div>
+        {/* Support Links */}
+        <div className="space-y-1">
+          <button className="flex w-full items-center gap-3 rounded-xl px-4 py-2 text-sm font-semibold text-brand-muted transition-colors hover:bg-white hover:text-brand-ink">
+            <Bell className="h-4 w-4" />
+            <span>Thông báo</span>
+          </button>
+          <button className="flex w-full items-center gap-3 rounded-xl px-4 py-2 text-sm font-semibold text-brand-muted transition-colors hover:bg-white hover:text-brand-ink">
+            <ShieldCheck className="h-4 w-4" />
+            <span>Hỗ trợ hệ thống</span>
+          </button>
         </div>
+
         <button
-          className="mt-4 flex w-full items-center gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 transition hover:bg-red-100"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#FCEDED] py-3 text-xs font-bold text-[#D34545] transition hover:bg-[#FADDDD]"
           onClick={handleLogout}
           type="button"
         >
-          <LogOut className="h-4 w-4" />
+          <LogOut className="h-3.5 w-3.5" />
           <span>Đăng xuất</span>
         </button>
       </div>
