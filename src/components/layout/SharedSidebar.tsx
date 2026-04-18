@@ -87,7 +87,7 @@ export function SharedSidebar({
           <Building2 className="h-6 w-6" />
         </div>
         <div>
-          <p className="font-headline text-2xl font-black tracking-tight text-brand-ink">Nha Dat Pro</p>
+          <p className="font-headline text-2xl font-black tracking-tight text-brand-ink">Địa Ốc Hub</p>
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-muted">Nền tảng quản lý bất động sản</p>
         </div>
       </div>
@@ -114,7 +114,7 @@ export function SharedSidebar({
       </nav>
 
       <div className="mt-auto space-y-5 pt-6">
-        <Link className="btn-primary flex w-full items-center justify-center gap-2 rounded-2xl py-4 font-bold shadow-lg shadow-brand-primary/20" href={primaryAction.href}>
+        <Link className="btn-primary flex w-full items-center justify-center gap-1 rounded-2xl py-4 font-bold shadow-lg shadow-brand-primary/20" href={primaryAction.href}>
           <Sparkles className="h-4 w-4" />
           <span>{primaryAction.label}</span>
         </Link>
@@ -125,15 +125,6 @@ export function SharedSidebar({
             <span>Trợ giúp hệ thống</span>
           </button>
         </div>
-
-        <button
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#FCEDED] py-3 text-xs font-bold text-[#D34545] transition hover:bg-[#FADDDD]"
-          onClick={handleLogout}
-          type="button"
-        >
-          <LogOut className="h-3.5 w-3.5" />
-          <span>Đăng xuất</span>
-        </button>
       </div>
     </aside>
   );

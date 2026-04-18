@@ -172,6 +172,7 @@ export async function loginAction(
       userId: user.id.toString(),
       email: user.email || '',
       role: roleName,
+      name: user.fullName
     });
 
     return {
@@ -215,6 +216,7 @@ async function registerUser(
       select: {
         id: true,
         email: true,
+        fullName: true
       },
     });
 
@@ -222,6 +224,7 @@ async function registerUser(
       userId: user.id.toString(),
       email: user.email || '',
       role,
+      name: user.fullName
     });
 
     return {
@@ -350,6 +353,7 @@ export async function handleGoogleCallback({
         userId: linkedAccount.user.id.toString(),
         email: linkedAccount.user.email || '',
         role: roleName,
+        name: linkedAccount.user.fullName 
       });
 
       return {
@@ -448,6 +452,7 @@ export async function completeGoogleOnboarding(
       userId: createdUser.id.toString(),
       email: createdUser.email || '',
       role: roleName,
+      name: createdUser.fullName
     });
 
     return {
@@ -532,6 +537,7 @@ export async function confirmGoogleAccountLink(
       userId: existingUser.id.toString(),
       email: existingUser.email || '',
       role: roleName,
+      name: existingUser.fullName
     });
 
     return {

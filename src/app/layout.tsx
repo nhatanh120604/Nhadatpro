@@ -13,7 +13,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'Nha Dat Pro',
+  title: 'Địa Ốc Hub',
   description: 'Nền tảng quản lý bất động sản chuyên nghiệp dành cho chủ nhà, quản gia và người thuê.',
 };
 
