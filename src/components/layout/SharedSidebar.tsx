@@ -26,7 +26,9 @@ type SidebarItem = {
 
 const tenantMenu: SidebarItem[] = [
   { title: 'Bảng điều khiển', href: '/tenant/dashboard', icon: LayoutGrid },
+  { title: 'Thanh toán', href: '/tenant/payments', icon: Wallet },
   { title: 'Hợp đồng', href: '/tenant/contracts', icon: FileText },
+  { title: 'Thông báo', href: '/tenant/notifications', icon: Bell },
 ];
 
 const ownerMenu: SidebarItem[] = [
@@ -35,6 +37,7 @@ const ownerMenu: SidebarItem[] = [
   { title: 'Yêu cầu', href: '/owner/requests', icon: ClipboardList },
   { title: 'Doanh thu', href: '/owner/revenue', icon: PiggyBank },
   { title: 'Thu tiền', href: '/owner/invoices', icon: Wallet },
+  { title: 'Thông báo', href: '/owner/notifications', icon: Bell },
 ];
 
 const managerMenu: SidebarItem[] = [
@@ -42,6 +45,8 @@ const managerMenu: SidebarItem[] = [
   { title: 'Tài sản được giao', href: '/manager/properties', icon: Building2 },
   { title: 'Yêu cầu xử lý', href: '/manager/requests', icon: ClipboardList },
   { title: 'Thu tiền', href: '/manager/invoices', icon: Wallet },
+  { title: 'Doanh thu', href: '/manager/revenue', icon: PiggyBank },
+  { title: 'Thông báo', href: '/manager/notifications', icon: Bell },
 ];
 
 function getRoleMenu(role: Role) {
@@ -119,10 +124,6 @@ export function SharedSidebar({
 
         {/* Support Links */}
         <div className="space-y-1">
-          <button className="flex w-full items-center gap-3 rounded-xl px-4 py-2 text-sm font-semibold text-brand-muted transition-colors hover:bg-white hover:text-brand-ink">
-            <Bell className="h-4 w-4" />
-            <span>Thông báo</span>
-          </button>
           <button className="flex w-full items-center gap-3 rounded-xl px-4 py-2 text-sm font-semibold text-brand-muted transition-colors hover:bg-white hover:text-brand-ink">
             <ShieldCheck className="h-4 w-4" />
             <span>Hỗ trợ hệ thống</span>

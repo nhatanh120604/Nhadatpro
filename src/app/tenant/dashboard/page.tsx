@@ -2,17 +2,17 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { ArrowRight, FileText, Send } from 'lucide-react';
+import { ArrowRight, Building2, FileText, Send } from 'lucide-react';
 import { getTenantConnectionState, requestUnitConnection } from '@/features/leases/leases.actions';
 
 type ConnectionState = {
-  activeLease: {
+  activeLeases: {
     leaseId: string;
     propertyName: string;
     propertyId: string;
     unitCode: string;
     endDate?: string;
-  } | null;
+  }[];
   pendingRequests: {
     requestId: string;
     propertyName: string;
@@ -66,39 +66,48 @@ export default function TenantDashboardPage() {
     return <p className="text-sm text-brand-muted">Đang tải bảng điều khiển...</p>;
   }
 
-  if (connectionState?.activeLease) {
-    return (
-      <div className="space-y-8">
-        <section className="shell-card grid gap-6 p-7 md:grid-cols-[1.1fr_0.9fr] md:p-8">
-          <div>
-            <p className="warm-badge">Hợp đồng đang hiệu lực</p>
-            <h1 className="mt-5 font-headline text-5xl font-extrabold text-brand-ink">{connectionState.activeLease.propertyName}</h1>
-            <p className="mt-3 text-lg text-brand-muted">Căn hộ {connectionState.activeLease.unitCode}</p>
-            <p className="mt-5 max-w-xl text-base leading-7 text-brand-muted">
-              Bạn đang có hợp đồng còn hiệu lực. Mọi thông tin chi tiết về thời hạn, tiền thuê và yêu cầu chấm dứt sớm đều nằm trong màn hình hợp đồng.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link className="btn-primary px-5 py-3.5 text-sm" href="/tenant/contracts">
-                Xem hợp đồng
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-          </div>
-
-          <div className="shell-panel p-6">
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-brand-muted">Thời hạn thuê</p>
-            <p className="mt-3 font-headline text-4xl font-extrabold text-brand-ink">
-              {connectionState.activeLease.endDate ? new Date(connectionState.activeLease.endDate).toLocaleDateString('vi-VN') : 'Chưa rõ'}
-            </p>
-            <p className="mt-4 text-sm leading-7 text-brand-muted">Hãy theo dõi thời điểm kết thúc hợp đồng để chủ động gia hạn hoặc gửi yêu cầu chấm dứt sớm.</p>
-          </div>
-        </section>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-8">
+      {connectionState && connectionState.activeLeases.length > 0 ? (
+        <section className="shell-card p-7 md:p-8">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="warm-badge">Hợp đồng đang hiệu lực</p>
+              <h1 className="mt-5 font-headline text-4xl font-extrabold text-brand-ink">Các căn hộ đang thuê</h1>
+              <p className="mt-3 max-w-2xl text-base leading-7 text-brand-muted">
+                Bạn có thể quản lý nhiều hợp đồng thuê cùng lúc. Mỗi căn hộ sẽ có hóa đơn, lịch thanh toán và yêu cầu chấm dứt riêng.
+              </p>
+            </div>
+            <Link className="btn-primary px-5 py-3.5 text-sm" href="/tenant/contracts">
+              Xem hợp đồng
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {connectionState.activeLeases.map((lease) => (
+              <div className="shell-panel p-5" key={lease.leaseId}>
+                <div className="flex items-center gap-3">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-primary/10 text-brand-primary-deep">
+                    <Building2 className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <p className="font-semibold text-brand-ink">{lease.propertyName}</p>
+                    <p className="text-sm text-brand-muted">Căn hộ {lease.unitCode}</p>
+                  </div>
+                </div>
+                <div className="mt-5 shell-muted p-4">
+                  <p className="text-sm text-brand-muted">Ngày kết thúc</p>
+                  <p className="mt-2 text-lg font-semibold text-brand-ink">
+                    {lease.endDate ? new Date(lease.endDate).toLocaleDateString('vi-VN') : 'Chưa rõ'}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       <section className="shell-card mx-auto max-w-3xl p-8 md:p-10">
         <p className="warm-badge">Kết nối căn hộ</p>
         <h1 className="mt-5 font-headline text-4xl font-extrabold text-brand-ink">Nhập mã kết nối thuê nhà</h1>

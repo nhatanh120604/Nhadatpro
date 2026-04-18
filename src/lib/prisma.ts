@@ -9,19 +9,33 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
+function getConnectionString() {
+  const rawConnectionString = process.env.DATABASE_URL ?? process.env.DIRECT_URL;
+
+  if (!rawConnectionString) {
+    throw new Error('Missing DATABASE_URL or DIRECT_URL.');
+  }
+
+  if (rawConnectionString.includes('sslmode=require')) {
+    return rawConnectionString.replace(
+      'sslmode=require',
+      'sslmode=require&uselibpqcompat=true'
+    );
+  }
+
+  const joiner = rawConnectionString.includes('?') ? '&' : '?';
+  return `${rawConnectionString}${joiner}sslmode=require&uselibpqcompat=true`;
+}
+
 let prisma: PrismaClient;
 
 if (process.env.NODE_ENV === 'production') {
-  const rawConnectionString = process.env.DIRECT_URL ?? process.env.DATABASE_URL;
-  const connectionString = rawConnectionString!.replace('sslmode=require', 'sslmode=require&uselibpqcompat=true');
-  const pool = new Pool({ connectionString });
+  const pool = new Pool({ connectionString: getConnectionString() });
   const adapter = new PrismaPg(pool);
   prisma = new PrismaClient({ adapter });
 } else {
   if (!globalForPrisma.prisma) {
-    const rawConnectionString = process.env.DIRECT_URL ?? process.env.DATABASE_URL;
-    const connectionString = rawConnectionString!.replace('sslmode=require', 'sslmode=require&uselibpqcompat=true');
-    const pool = new Pool({ connectionString });
+    const pool = new Pool({ connectionString: getConnectionString() });
     const adapter = new PrismaPg(pool);
     globalForPrisma.prisma = new PrismaClient({ adapter });
   }

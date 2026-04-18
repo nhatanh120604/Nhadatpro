@@ -25,10 +25,23 @@ Develop the system incrementally, validating each end-to-end workflow before pro
 - **Payments:** Provide the Tenant proof-of-payment upload feature.
 - **Verification Loop:** Provide Managers/Owners the interface to review payment proofs, verifying or rejecting them to auto-update invoice statuses.
 
+Implementation direction:
+- Generate invoices from active leases by owner/manager-triggered monthly batch creation or one-off invoice creation.
+- Use VietQR/manual bank transfer instructions for Vietnam rent payments, with VNPAY/MoMo/ZaloPay reserved for future gateway work.
+- Store payment proof files in a private Supabase Storage bucket and expose them only through authorized signed URLs.
+- Allow partial payments, block overpayments, and keep rejected payment attempts in history.
+
 ### Phase 5: Operations & Analytics 
 - Create **Expense** logging functionality to track categorized outgoing costs against properties.
 - Design **Dashboards** compiling actionable metrics (e.g., occupancy rates, total revenue, expected cash flows).
 - Deploy an **Alerting** mechanism to flag critical conditions: impending lease expirations, overdue invoices, and vacant units.
+
+Implementation direction:
+- Add a protected reset-style demo seed with realistic owners, managers, tenants, properties, units, leases, invoices, payments, expenses, and alerts.
+- Owners can manage expenses for owned properties; assigned managers can create expenses and void only expenses they created.
+- Revenue means verified payments only; outstanding balances are invoice totals minus verified payments.
+- Generate operational alerts on dashboard/revenue/notification load using idempotent alert keys instead of scheduled cron.
+- Tenants only see personal invoice and lease alerts; owner/manager operational alerts stay scoped to authorized properties.
 
 ### Phase 6: Polish, Testing, & Optimization
 - Refine UI interactions, enforcing consistency in empty states, loading indicators, and error messaging.

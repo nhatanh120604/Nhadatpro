@@ -18,6 +18,7 @@ Before collaborators start working, they should follow the setup steps below exa
 - PostgreSQL
 - Custom JWT cookie session auth
 - Optional Google OAuth for login/signup
+- Supabase Storage for private payment proof uploads
 
 ## Requirements
 
@@ -55,6 +56,10 @@ Then fill in these values:
 - `DATABASE_URL`
 - `DIRECT_URL`
 - `JWT_SECRET`
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_PAYMENT_PROOFS_BUCKET`
+- `PAYMENT_PROOF_MAX_MB`
 
 Optional, only if you want Google login/signup locally:
 
@@ -67,6 +72,8 @@ Notes:
 - `DATABASE_URL` can use the pooled connection.
 - `DIRECT_URL` should use the direct database connection for Prisma CLI commands.
 - `JWT_SECRET` is required. The app will fail without it.
+- Supabase Storage values are required for tenant payment proof uploads.
+- `SUPABASE_SERVICE_ROLE_KEY` must only be used server-side.
 - `.env` must never be committed.
 
 ## 3. Prepare the database
@@ -84,6 +91,7 @@ What they do:
 - `db:generate`: regenerate Prisma Client from the schema
 - `db:push`: sync the schema to the current database
 - `db:seed`: insert demo roles and demo users
+- `db:seed:demo`: reset and insert a full test dataset, only when explicitly enabled
 
 Default seeded password:
 
@@ -94,12 +102,26 @@ Password123!
 Demo accounts:
 
 - `owner@pmh.com`
+- `owner2@pmh.com` when using the full demo seed
 - `manager@pmh.com`
+- `manager2@pmh.com` when using the full demo seed
 - `tenant1@pmh.com`
 - `tenant2@pmh.com`
 - `tenant3@pmh.com`
 - `tenant4@pmh.com`
+- `tenant5@pmh.com` when using the full demo seed
+- `tenant6@pmh.com` when using the full demo seed
 - `admin@pmh.com`
+
+### Full test database seed
+
+For end-to-end testing, use the protected full demo seed. This command deletes app data and recreates a rich testing dataset, so only run it against a test database.
+
+```bash
+ALLOW_DEMO_DB_RESET=true npm run db:seed:demo
+```
+
+The full demo seed includes multiple owners/managers/tenants, properties, units, active/expired/terminated leases, invoices, verified/pending/rejected payments, VietQR receiving accounts, expenses, and alerts.
 
 ## 4. Start the app
 
@@ -171,6 +193,7 @@ Recommended workflow for students:
 - Authentication is custom, not NextAuth/Auth.js.
 - Most mutations are implemented with Server Actions.
 - Prisma uses PostgreSQL through `pg` and `@prisma/adapter-pg`.
+- Phase 4 payment proofs are stored in a private Supabase Storage bucket.
 
 ## 9. Useful commands
 
@@ -182,6 +205,7 @@ npm run check
 npm run db:generate
 npm run db:push
 npm run db:seed
+npm run db:seed:demo
 npm run db:studio
 ```
 
@@ -194,5 +218,7 @@ npm run db:studio
 - `markdowns/PHASE_1_DONE.md`
 - `markdowns/PHASE_2_DONE.md`
 - `markdowns/PHASE_3_DONE.md`
+- `markdowns/PHASE_4_DONE.md`
+- `markdowns/PHASE_5_DONE.md`
 - `markdowns/MANUAL_TESTING_CHECKLIST.md`
 - `CONTRIBUTING.md`

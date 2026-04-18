@@ -20,14 +20,19 @@ nha-dat-pro/
 |   |   `-- tenant/             # Tenant views
 |   |-- components/             # Reusable UI and page-level components
 |   |   |-- auth/               # Login, register, and onboarding UI
+|   |   |-- alerts/             # Notification center UI
+|   |   |-- expenses/           # Revenue and expense management UI
 |   |   |-- layout/             # Shared shell, navigation, sidebar
 |   |   |-- leases/             # Lease approval UI
 |   |   `-- units/              # Unit edit UI
 |   |-- features/               # Domain actions, validation, and types
+|   |   |-- alerts/
 |   |   |-- auth/
 |   |   |-- dashboard/
+|   |   |-- expenses/
 |   |   |-- leases/
 |   |   |-- managerAssignments/
+|   |   |-- invoices/
 |   |   |-- properties/
 |   |   `-- units/
 |   |-- lib/                    # Shared helpers like prisma, auth, session, invite codes

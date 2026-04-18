@@ -26,6 +26,7 @@
 - Prisma 7
 - `pg` driver
 - `@prisma/adapter-pg`
+- Supabase Storage for private payment proof uploads
 
 ## Authentication
 
@@ -38,6 +39,7 @@
 - ESLint
 - TypeScript strict mode
 - Prisma seed script with demo users
+- Protected full demo reset seed for end-to-end testing
 
 ## Deployment direction
 

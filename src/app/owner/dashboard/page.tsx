@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { ArrowRight, Building2, ClipboardList, DoorOpen } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Building2, ClipboardList, DoorOpen, TrendingUp, Wallet } from 'lucide-react';
 import { getDashboardMetrics, type DashboardMetrics } from '@/features/dashboard/dashboard.actions';
 
 function StatCard({
@@ -40,8 +40,13 @@ function StatCard({
   );
 }
 
+function money(value: string) {
+  return `${Number(value || 0).toLocaleString('vi-VN')} VNĐ`;
+}
+
 export default function OwnerDashboardPage() {
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
   const totalProperties = metrics?.totalProperties ?? 0;
@@ -53,6 +58,9 @@ export default function OwnerDashboardPage() {
       const response = await getDashboardMetrics();
       if (response.success && response.data) {
         setMetrics(response.data);
+        setError('');
+      } else {
+        setError(response.message || 'Không thể tải số liệu bảng điều khiển');
       }
       setLoading(false);
     }
@@ -98,8 +106,9 @@ export default function OwnerDashboardPage() {
       </section>
 
       {loading ? <p className="text-sm text-brand-muted">Đang tải số liệu...</p> : null}
+      {error ? <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</div> : null}
 
-      <section className="grid gap-4 md:grid-cols-3">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard
           emptyActionHref="/owner/properties/new"
           emptyActionLabel="Tạo tài sản đầu tiên"
@@ -110,6 +119,14 @@ export default function OwnerDashboardPage() {
         />
         <StatCard icon={DoorOpen} label="Tổng căn hộ" value={String(totalUnits)} />
         <StatCard icon={ClipboardList} label="Đã lấp đầy" value={String(occupiedUnits)} />
+        <StatCard icon={AlertTriangle} label="Cảnh báo mở" value={String((metrics?.overdueInvoiceCount ?? 0) + (metrics?.expiringLeaseCount ?? 0) + (metrics?.oldVacantUnitCount ?? 0) + (metrics?.pendingPaymentReviewCount ?? 0))} />
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <StatCard icon={Wallet} label="Đã thu tháng này" value={money(metrics?.currentMonthPaid ?? '0')} />
+        <StatCard icon={TrendingUp} label="Lợi nhuận ròng" value={money(metrics?.currentMonthNetIncome ?? '0')} />
+        <StatCard icon={ClipboardList} label="Hóa đơn quá hạn" value={String(metrics?.overdueInvoiceCount ?? 0)} />
+        <StatCard icon={DoorOpen} label="Trống trên 7 ngày" value={String(metrics?.oldVacantUnitCount ?? 0)} />
       </section>
     </div>
   );

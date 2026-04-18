@@ -10,8 +10,8 @@ export default defineConfig({
     seed: "npx tsx prisma/seed.ts",
   },
   datasource: {
-    // For Prisma CLI actions (migrate, db push, studio), prefer the direct
-    // database connection to avoid PgBouncer/pooler limitations.
-    url: process.env["DIRECT_URL"] ?? process.env["DATABASE_URL"],
+    // Prefer the pooled URL because some local networks cannot reach the
+    // Supabase direct IPv6 host. Set PRISMA_CLI_DATABASE_URL to override.
+    url: process.env["PRISMA_CLI_DATABASE_URL"] ?? process.env["DATABASE_URL"] ?? process.env["DIRECT_URL"],
   },
 });

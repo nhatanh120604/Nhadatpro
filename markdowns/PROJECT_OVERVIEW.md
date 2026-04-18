@@ -13,6 +13,11 @@ The current repo includes:
 - manager assignment by invite code
 - tenant connection to units by invite code
 - lease creation and lease termination workflow
+- invoice generation and payment proof review
+- VietQR/manual bank transfer payment instructions
+- expense logging and revenue analytics
+- operational alerts and role-based notifications
+- protected full demo database seed
 - owner, manager, and tenant dashboards
 - Google login as an optional add-on to manual auth
 
@@ -25,9 +30,9 @@ The current repo includes:
 
 ## Main user flows
 
-- Owner: log in -> manage properties and units -> assign managers -> approve tenant requests -> manage leases
-- Manager: log in -> request property assignment -> manage assigned properties -> approve tenant connection requests -> handle lease operations
-- Tenant: log in -> connect to a unit using a code -> view contract -> request lease termination
+- Owner: log in -> manage properties and units -> assign managers -> approve tenant requests -> manage leases -> review revenue and alerts
+- Manager: log in -> request property assignment -> manage assigned properties -> approve tenant connection requests -> handle lease operations -> review assigned-property payments -> log expenses
+- Tenant: log in -> connect to units using codes -> view contracts -> pay invoices -> review personal alerts
 
 ## Collaboration goal
 

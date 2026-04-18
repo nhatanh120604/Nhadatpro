@@ -9,6 +9,7 @@ Use this checklist before merging or handing your branch to another teammate.
 - `npm run db:generate` works.
 - `npm run db:push` works.
 - `npm run db:seed` works.
+- Optional full demo reset works on a test database: `ALLOW_DEMO_DB_RESET=true npm run db:seed:demo`.
 - `npm run dev` starts successfully.
 - `/login` loads without console or server errors.
 
@@ -47,6 +48,14 @@ Only test this if Google credentials are configured.
 - Owner can review manager assignment requests.
 - Owner can terminate an active lease.
 - Owner can end an active manager assignment.
+- Owner can configure a property receiving account.
+- Owner can generate monthly invoices from active leases.
+- Owner can create a one-off invoice.
+- Owner can review, verify, and reject payment proofs.
+- Owner can open revenue reports.
+- Owner can create, edit, and void property expenses.
+- Owner dashboard shows financial and alert metrics.
+- Owner can view notifications and mark them read.
 
 ## 5. Manager flows
 
@@ -56,6 +65,12 @@ Only test this if Google credentials are configured.
 - Manager can review tenant connection requests for assigned properties.
 - Manager can create a lease from an approved tenant request.
 - Manager can leave a property assignment.
+- Manager can generate invoices for assigned properties.
+- Manager can review payment proofs for assigned properties.
+- Manager can open revenue reports for assigned properties.
+- Manager can create and edit expenses for assigned properties.
+- Manager can void only expenses they created.
+- Manager can view notifications scoped to assigned properties.
 
 ## 6. Tenant flows
 
@@ -64,6 +79,13 @@ Only test this if Google credentials are configured.
 - Tenant sees pending state after submitting a request.
 - Tenant can view contract details after approval.
 - Tenant can request early lease termination.
+- Tenant can view invoices.
+- Tenant can see VietQR/manual bank transfer instructions when configured.
+- Tenant can upload a payment proof file.
+- Tenant cannot overpay an invoice.
+- Tenant cannot submit a second proof while one is pending.
+- Tenant can view personal notifications.
+- Tenant does not see owner/manager expense or vacant-unit alerts.
 
 ## 7. Quality checks
 

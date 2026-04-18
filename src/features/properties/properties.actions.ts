@@ -2,6 +2,7 @@
 
 import prisma from '@/lib/prisma';
 import { getSession } from '@/lib/session';
+import { expirePastActiveLeases } from '@/lib/lease-expiration';
 import {
   createPropertySchema,
   deletePropertySchema,
@@ -168,6 +169,7 @@ export async function getProperties(): Promise<ActionResponse<PropertyListItem[]
   if (!session) return { success: false, message: 'Unauthorized' };
 
   try {
+    await expirePastActiveLeases();
     const properties = await prisma.property.findMany({
       where: scopeWhereForRead(session),
       orderBy: { createdAt: 'desc' },
@@ -227,6 +229,11 @@ export async function getPropertyById(
 
   try {
     const propertyId = parseBigInt(parsed.data.propertyId);
+    await expirePastActiveLeases({
+      unit: {
+        propertyId,
+      },
+    });
 
     const hasAccess = await canAccessProperty(session, propertyId);
     if (!hasAccess) {
@@ -283,6 +290,11 @@ export async function getOwnerPropertyManagementDetail(
 
   try {
     const propertyId = parseBigInt(parsed.data.propertyId);
+    await expirePastActiveLeases({
+      unit: {
+        propertyId,
+      },
+    });
 
     const hasAccess = await canAccessProperty(session, propertyId);
     if (!hasAccess) {

@@ -20,6 +20,7 @@ The project is built with:
 - PostgreSQL
 - custom JWT cookie authentication
 - optional Google OAuth
+- Supabase Storage for private payment proof uploads
 
 The UI is in Vietnamese. Most code and technical docs are in English.
 
@@ -31,6 +32,8 @@ The repo is beyond the initial setup stage. The main working areas already imple
 - Phase 1: authentication and authorization
 - Phase 2: property and unit management
 - Phase 3: lease flow, tenant connection, and manager assignment
+- Phase 4: invoices, VietQR/manual transfer instructions, and payment proof review
+- Phase 5: full demo seed, expenses, revenue analytics, dashboard metrics, and notifications
 
 This is active development code, not a blank starter template.
 
@@ -57,6 +60,12 @@ This is active development code, not a blank starter template.
 - terminate leases
 - remove/archive properties and units using history-preserving rules
 - remove active manager assignments
+- configure property receiving accounts
+- generate rent invoices
+- review and verify payment proofs
+- view revenue analytics
+- create, edit, and void property expenses
+- view operational notifications
 
 ### Manager features
 
@@ -67,6 +76,12 @@ This is active development code, not a blank starter template.
 - review tenant requests in assigned properties
 - create leases from approved tenant requests
 - leave a property assignment
+- generate invoices for assigned properties
+- review payment proofs for assigned properties
+- view revenue analytics for assigned properties
+- create expenses for assigned properties
+- void expenses they created
+- view assigned-property notifications
 
 ### Tenant features
 
@@ -75,6 +90,8 @@ This is active development code, not a blank starter template.
 - view pending connection state
 - view contract
 - request early lease termination
+- view invoices and upload payment proofs
+- view personal notifications for overdue invoices and expiring leases
 
 ## 4. Important business logic already in place
 
@@ -84,6 +101,11 @@ This is active development code, not a blank starter template.
 - owners and assigned managers can approve tenant connection requests
 - historical data should be preserved instead of blindly deleted
 - some removal flows archive records rather than permanently removing operational history
+- only verified payments count toward invoice totals
+- payment proof files are stored privately and opened through signed URLs
+- revenue analytics count verified payments only
+- expenses are voided rather than hard-deleted
+- alerts use dedupe keys so repeated dashboard loads do not create duplicates
 
 ## 5. Main folders
 
@@ -110,6 +132,10 @@ Copy `.env.example` to `.env` and fill in:
 - `DATABASE_URL`
 - `DIRECT_URL`
 - `JWT_SECRET`
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_PAYMENT_PROOFS_BUCKET`
+- `PAYMENT_PROOF_MAX_MB`
 
 Optional for Google login:
 
@@ -125,6 +151,12 @@ npm run db:generate
 npm run db:push
 npm run db:seed
 npm run dev
+```
+
+For a full end-to-end test database, run this only against a test database:
+
+```bash
+ALLOW_DEMO_DB_RESET=true npm run db:seed:demo
 ```
 
 ### Demo login accounts
@@ -143,6 +175,10 @@ Seeded accounts:
 - `tenant2@pmh.com`
 - `tenant3@pmh.com`
 - `tenant4@pmh.com`
+- `tenant5@pmh.com` when using the full demo seed
+- `tenant6@pmh.com` when using the full demo seed
+- `owner2@pmh.com` when using the full demo seed
+- `manager2@pmh.com` when using the full demo seed
 - `admin@pmh.com`
 
 ## 7. Commands developers should know
@@ -155,6 +191,7 @@ npm run check
 npm run db:generate
 npm run db:push
 npm run db:seed
+npm run db:seed:demo
 npm run db:studio
 ```
 
@@ -188,7 +225,8 @@ npm run db:studio
 - checked-in migrations exist
 - the repo currently uses `db push` in the setup guide for simplicity
 - `DIRECT_URL` is important for Prisma CLI commands
-- the seed script creates roles and demo users
+- the normal seed script creates roles and demo users
+- the full demo seed resets app data and creates realistic test records
 
 Important caution:
 
@@ -227,7 +265,9 @@ Read these in this order:
 7. `markdowns/PHASE_1_DONE.md`
 8. `markdowns/PHASE_2_DONE.md`
 9. `markdowns/PHASE_3_DONE.md`
-10. `markdowns/MANUAL_TESTING_CHECKLIST.md`
+10. `markdowns/PHASE_4_DONE.md`
+11. `markdowns/PHASE_5_DONE.md`
+12. `markdowns/MANUAL_TESTING_CHECKLIST.md`
 
 ## 13. Recommended first check for a new teammate
 

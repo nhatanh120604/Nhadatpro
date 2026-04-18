@@ -2,6 +2,7 @@
 
 import { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
+import { expirePastActiveLeases } from '@/lib/lease-expiration';
 import {
   assertPropertyAccess,
   assertPropertyOwner,
@@ -42,13 +43,13 @@ type InviteCodeData = {
 };
 
 type TenantConnectionState = {
-  activeLease: {
+  activeLeases: {
     leaseId: string;
     propertyName: string;
     propertyId: string;
     unitCode: string;
     endDate?: string;
-  } | null;
+  }[];
   pendingRequests: {
     requestId: string;
     propertyName: string;
@@ -245,6 +246,7 @@ export async function requestUnitConnection(
   try {
     const session = await requireRole(['TENANT']);
     const tenantId = parseId(session.userId);
+    await expirePastActiveLeases({ tenantId });
     const invite = await prisma.unitInviteCode.findFirst({
       where: {
         codeHash: hashInviteCode(parsed.data.inviteCode),
@@ -269,17 +271,17 @@ export async function requestUnitConnection(
       return { success: false, message: 'Invite code is invalid or expired' };
     }
 
-    const [activeUnitLease, activeTenantLease, existingPending] = await Promise.all([
+    await expirePastActiveLeases({
+      OR: [
+        { tenantId },
+        { unitId: invite.unitId },
+      ],
+    });
+
+    const [activeUnitLease, existingPending] = await Promise.all([
       prisma.lease.findFirst({
         where: {
           unitId: invite.unitId,
-          status: 'ACTIVE',
-        },
-        select: { id: true },
-      }),
-      prisma.lease.findFirst({
-        where: {
-          tenantId,
           status: 'ACTIVE',
         },
         select: { id: true },
@@ -296,10 +298,6 @@ export async function requestUnitConnection(
 
     if (activeUnitLease) {
       return { success: false, message: 'This unit already has an active lease' };
-    }
-
-    if (activeTenantLease) {
-      return { success: false, message: 'You already have an active lease' };
     }
 
     if (existingPending) {
@@ -334,8 +332,9 @@ export async function getTenantConnectionState(): Promise<ActionResponse<TenantC
   try {
     const session = await requireRole(['TENANT']);
     const tenantId = parseId(session.userId);
+    await expirePastActiveLeases({ tenantId });
 
-    const activeLease = await prisma.lease.findFirst({
+    const activeLeases = await prisma.lease.findMany({
       where: {
         tenantId,
         status: 'ACTIVE',
@@ -378,15 +377,13 @@ export async function getTenantConnectionState(): Promise<ActionResponse<TenantC
     return {
       success: true,
       data: {
-        activeLease: activeLease
-          ? {
-              leaseId: activeLease.id.toString(),
-              propertyId: activeLease.unit.property.id.toString(),
-              propertyName: activeLease.unit.property.propertyName,
-              unitCode: activeLease.unit.unitCode,
-              endDate: toDateString(activeLease.endDate) || undefined,
-            }
-          : null,
+        activeLeases: activeLeases.map((lease) => ({
+          leaseId: lease.id.toString(),
+          propertyId: lease.unit.property.id.toString(),
+          propertyName: lease.unit.property.propertyName,
+          unitCode: lease.unit.unitCode,
+          endDate: toDateString(lease.endDate) || undefined,
+        })),
         pendingRequests: pendingRequests.map((request) => ({
           requestId: request.id.toString(),
           propertyId: request.unit.property.id.toString(),
@@ -568,6 +565,12 @@ export async function approveUnitConnectionAndCreateLease(
     }
 
     await assertPropertyAccess(session, request.unit.property.id);
+    await expirePastActiveLeases({
+      OR: [
+        { unitId: request.unitId },
+        { tenantId: request.tenantId },
+      ],
+    });
 
     const startDate = parseDateInput(parsed.data.startDate);
     const endDate = parseDateInput(parsed.data.endDate);
@@ -589,29 +592,16 @@ export async function approveUnitConnectionAndCreateLease(
         throw new Error('REQUEST_NOT_PENDING');
       }
 
-      const [activeUnitLease, activeTenantLease] = await Promise.all([
-        tx.lease.findFirst({
-          where: {
-            unitId: freshRequest.unitId,
-            status: 'ACTIVE',
-          },
-          select: { id: true },
-        }),
-        tx.lease.findFirst({
-          where: {
-            tenantId: freshRequest.tenantId,
-            status: 'ACTIVE',
-          },
-          select: { id: true },
-        }),
-      ]);
+      const activeUnitLease = await tx.lease.findFirst({
+        where: {
+          unitId: freshRequest.unitId,
+          status: 'ACTIVE',
+        },
+        select: { id: true },
+      });
 
       if (activeUnitLease) {
         throw new Error('UNIT_ALREADY_LEASED');
-      }
-
-      if (activeTenantLease) {
-        throw new Error('TENANT_ALREADY_LEASED');
       }
 
       const lease = await tx.lease.create({
@@ -653,10 +643,7 @@ export async function approveUnitConnectionAndCreateLease(
       await tx.unitConnectionRequest.updateMany({
         where: {
           status: 'PENDING',
-          OR: [
-            { unitId: freshRequest.unitId },
-            { tenantId: freshRequest.tenantId },
-          ],
+          unitId: freshRequest.unitId,
           NOT: {
             id: freshRequest.id,
           },
@@ -665,7 +652,7 @@ export async function approveUnitConnectionAndCreateLease(
           status: 'REJECTED',
           reviewedAt: reviewTime,
           reviewedById: parseId(session.userId),
-          rejectionNote: 'Automatically closed after another lease was approved.',
+          rejectionNote: 'Automatically closed after another lease was approved for this unit.',
         },
       });
 
@@ -690,10 +677,6 @@ export async function approveUnitConnectionAndCreateLease(
   } catch (error) {
     if (error instanceof Error && error.message === 'UNIT_ALREADY_LEASED') {
       return { success: false, message: 'This unit already has an active lease' };
-    }
-
-    if (error instanceof Error && error.message === 'TENANT_ALREADY_LEASED') {
-      return { success: false, message: 'This tenant already has an active lease' };
     }
 
     if (error instanceof Error && error.message === 'REQUEST_NOT_PENDING') {
@@ -753,16 +736,17 @@ export async function rejectUnitConnectionRequest(
   }
 }
 
-export async function getTenantContract(): Promise<ActionResponse<TenantContractData>> {
+export async function getTenantContracts(): Promise<ActionResponse<TenantContractData[]>> {
   try {
     const session = await requireRole(['TENANT']);
     const tenantId = parseId(session.userId);
+    await expirePastActiveLeases({ tenantId });
 
-    const lease = await prisma.lease.findFirst({
+    const leases = await prisma.lease.findMany({
       where: {
         tenantId,
         status: {
-          in: ['ACTIVE', 'TERMINATED'],
+          in: ['ACTIVE', 'TERMINATED', 'EXPIRED'],
         },
       },
       include: {
@@ -783,13 +767,9 @@ export async function getTenantContract(): Promise<ActionResponse<TenantContract
       ],
     });
 
-    if (!lease) {
-      return { success: false, message: 'No lease found for this tenant' };
-    }
-
     return {
       success: true,
-      data: {
+      data: leases.map((lease) => ({
         leaseId: lease.id.toString(),
         propertyName: lease.unit.property.propertyName,
         propertyId: lease.unit.property.id.toString(),
@@ -805,11 +785,25 @@ export async function getTenantContract(): Promise<ActionResponse<TenantContract
         terminationRequestedAt: lease.terminationRequestedAt?.toISOString() ?? null,
         terminationRequestedNote: lease.terminationRequestedNote,
         terminatedAt: lease.terminatedAt?.toISOString() ?? null,
-      },
+      })),
     };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to load tenant contract') };
+    return { success: false, ...normalizeActionError(error, 'Failed to load tenant contracts') };
   }
+}
+
+export async function getTenantContract(): Promise<ActionResponse<TenantContractData>> {
+  const response = await getTenantContracts();
+  if (!response.success) {
+    return { success: false, message: response.message, errors: response.errors };
+  }
+
+  const contract = response.data?.[0];
+  if (!contract) {
+    return { success: false, message: 'No lease found for this tenant' };
+  }
+
+  return { success: true, data: contract };
 }
 
 export async function requestEarlyTermination(
@@ -824,6 +818,7 @@ export async function requestEarlyTermination(
     const session = await requireRole(['TENANT']);
     const leaseId = parseId(parsed.data.leaseId);
     const tenantId = parseId(session.userId);
+    await expirePastActiveLeases({ tenantId });
 
     const lease = await prisma.lease.findFirst({
       where: {
@@ -864,6 +859,7 @@ export async function listLeaseTerminationRequests(): Promise<
     if (isTenant(session)) {
       throw new Error('FORBIDDEN');
     }
+    await expirePastActiveLeases();
 
     const leases = await prisma.lease.findMany({
       where: {
@@ -980,7 +976,3 @@ export async function executeLeaseTermination(
     return { success: false, ...normalizeActionError(error, 'Failed to terminate lease') };
   }
 }
-
-
-
-

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Building2, ClipboardList, DoorOpen, Percent } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Building2, ClipboardList, DoorOpen, Percent, TrendingUp, Wallet } from 'lucide-react';
 import { getDashboardMetrics, type DashboardMetrics } from '@/features/dashboard/dashboard.actions';
 import {
   getManagerAssignmentState,
@@ -40,6 +40,10 @@ function StatCard({ label, value, icon: Icon }: { label: string; value: string; 
   );
 }
 
+function money(value: string) {
+  return `${Number(value || 0).toLocaleString('vi-VN')} VNĐ`;
+}
+
 export default function ManagerDashboardPage() {
   const [assignmentState, setAssignmentState] = useState<AssignmentState | null>(null);
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
@@ -57,6 +61,8 @@ export default function ManagerDashboardPage() {
         const metricsResponse = await getDashboardMetrics();
         if (metricsResponse.success && metricsResponse.data) {
           setMetrics(metricsResponse.data);
+        } else {
+          setError(metricsResponse.message || 'Không thể tải số liệu bảng điều khiển');
         }
       }
     }
@@ -204,6 +210,13 @@ export default function ManagerDashboardPage() {
         <StatCard icon={DoorOpen} label="Tổng căn hộ" value={String(metrics?.totalUnits ?? 0)} />
         <StatCard icon={ClipboardList} label="Căn còn trống" value={String(metrics?.vacantUnits ?? 0)} />
         <StatCard icon={Percent} label="Tỷ lệ lấp đầy" value={`${metrics?.occupancyRate ?? 0}%`} />
+      </section>
+
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <StatCard icon={Wallet} label="Đã thu tháng này" value={money(metrics?.currentMonthPaid ?? '0')} />
+        <StatCard icon={TrendingUp} label="Lợi nhuận ròng" value={money(metrics?.currentMonthNetIncome ?? '0')} />
+        <StatCard icon={AlertTriangle} label="Hóa đơn quá hạn" value={String(metrics?.overdueInvoiceCount ?? 0)} />
+        <StatCard icon={ClipboardList} label="Thanh toán chờ duyệt" value={String(metrics?.pendingPaymentReviewCount ?? 0)} />
       </section>
 
       <section className="grid gap-6 lg:grid-cols-[1fr_1fr]">
