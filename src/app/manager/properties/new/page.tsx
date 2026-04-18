@@ -53,7 +53,7 @@ export default function NewPropertyPage() {
             <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brand-primary-deep">Tạo tài sản mới</p>
             <h1 className="mt-3 font-headline text-4xl font-extrabold text-brand-ink">Khởi tạo tài sản phụ trách</h1>
             <p className="mt-3 max-w-2xl text-base leading-7 text-brand-muted">
-              Thiết lập nhanh một tài sản mới để quản gia có thể bắt đầu thêm căn, theo dõi lấp đầy và vận hành danh mục theo chuẩn giao diện mới.
+              Thiết lập nhanh một tài sản mới để quản gia có thể bắt đầu thêm căn, theo dõi trạng thái thuê và vận hành danh mục theo chuẩn giao diện mới.
             </p>
           </div>
           <Link className="btn-secondary px-4 py-3 text-sm" href="/manager/properties">
@@ -88,7 +88,7 @@ export default function NewPropertyPage() {
 
             <div className="space-y-2">
               <label className="text-sm font-semibold text-brand-ink">Loại hình</label>
-              <select className="input-shell w-full px-4 py-3" name="propertyType">
+              <select aria-label="Loại hình" className="input-shell w-full px-4 py-3" name="propertyType" title="Loại hình">
                 <option value="APARTMENT">Chung cư / căn hộ</option>
                 <option value="HOUSE">Nhà phố</option>
                 <option value="OFFICE">Văn phòng</option>

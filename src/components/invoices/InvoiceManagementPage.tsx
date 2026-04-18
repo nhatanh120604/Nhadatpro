@@ -83,7 +83,7 @@ export default function InvoiceManagementPage({ roleBase }: { roleBase: 'owner' 
     bankName: '',
     accountNumber: '',
     accountName: '',
-    transferNoteTemplate: 'Thanh toan {invoiceCode}',
+    transferNoteTemplate: 'Thanh toán {invoiceCode}',
   });
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState('');
@@ -121,7 +121,7 @@ export default function InvoiceManagementPage({ roleBase }: { roleBase: 'owner' 
           bankName: response.data.bankName,
           accountNumber: response.data.accountNumber,
           accountName: response.data.accountName,
-          transferNoteTemplate: response.data.transferNoteTemplate || 'Thanh toan {invoiceCode}',
+          transferNoteTemplate: response.data.transferNoteTemplate || 'Thanh toán {invoiceCode}',
         });
       }
     }
@@ -370,7 +370,7 @@ export default function InvoiceManagementPage({ roleBase }: { roleBase: 'owner' 
               <div className="shell-muted space-y-2 p-4 text-sm text-brand-ink">
                 <p>{account.bankName} ({account.bankCode})</p>
                 <p>{account.accountNumber} · {account.accountName}</p>
-                <p className="text-brand-muted">{account.transferNoteTemplate || 'Thanh toan {invoiceCode}'}</p>
+                <p className="text-brand-muted">{account.transferNoteTemplate || 'Thanh toán {invoiceCode}'}</p>
               </div>
             ) : (
               <p className="text-sm text-brand-muted">Chủ nhà chưa cấu hình tài khoản nhận tiền cho tài sản này.</p>

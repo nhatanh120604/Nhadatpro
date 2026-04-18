@@ -509,7 +509,7 @@ export default function OwnerPropertyDetailPage() {
                         <h3 className="font-headline text-2xl font-bold text-brand-ink">{unit.unitName || unit.unitCode}</h3>
                         <span className="warm-badge">{unit.occupancyStatus === 'OCCUPIED' ? 'Đã có người thuê' : 'Còn trống'}</span>
                       </div>
-                      <p className="mt-3 text-sm leading-6 text-brand-muted">Mã căn {unit.unitCode}</p>
+                      <p className="mt-3 text-sm leading-6 text-brand-muted">Mã căn: {unit.unitCode}</p>
                       <div className="mt-4 flex flex-wrap gap-3">
                         <StatChip label="Giá thuê" value={formatMoney(unit.defaultMonthlyRent)} />
                         <StatChip label="Tiền cọc" value={formatMoney(unit.defaultDeposit)} />

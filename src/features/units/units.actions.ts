@@ -99,7 +99,7 @@ export async function getUnitsByPropertyId(
   payload: GetUnitsByPropertyIdInput
 ): Promise<ActionResponse<UnitListItem[]>> {
   const session = await getSessionOrError();
-  if (!session) return { success: false, message: 'Unauthorized' };
+  if (!session) return { success: false, message: 'Phiên đăng nhập không hợp lệ' };
 
   const parsed = getUnitsByPropertyIdSchema.safeParse(payload);
   if (!parsed.success) {
@@ -111,7 +111,7 @@ export async function getUnitsByPropertyId(
 
     const hasAccess = await canAccessProperty(session, propertyId);
     if (!hasAccess) {
-      return { success: false, message: 'You do not have access to this property' };
+      return { success: false, message: 'Bạn không có quyền truy cập tài sản này' };
     }
 
     const units = await prisma.unit.findMany({
@@ -157,7 +157,7 @@ export async function getUnitsByPropertyId(
     };
   } catch (error) {
     console.error('getUnitsByPropertyId error:', error);
-    return { success: false, message: 'Failed to fetch units' };
+    return { success: false, message: 'Không thể tải danh sách căn hộ' };
   }
 }
 
@@ -165,7 +165,7 @@ export async function getUnitById(
   payload: GetUnitByIdInput
 ): Promise<ActionResponse<UnitDetailItem>> {
   const session = await getSessionOrError();
-  if (!session) return { success: false, message: 'Unauthorized' };
+  if (!session) return { success: false, message: 'Phiên đăng nhập không hợp lệ' };
 
   const parsed = getUnitByIdSchema.safeParse(payload);
   if (!parsed.success) {
@@ -178,7 +178,7 @@ export async function getUnitById(
 
     const hasAccess = await canAccessProperty(session, propertyId);
     if (!hasAccess) {
-      return { success: false, message: 'You do not have access to this property' };
+      return { success: false, message: 'Bạn không có quyền truy cập tài sản này' };
     }
 
     const unit = await prisma.unit.findFirst({
@@ -200,7 +200,7 @@ export async function getUnitById(
     });
 
     if (!unit) {
-      return { success: false, message: 'Unit not found' };
+      return { success: false, message: 'Không tìm thấy căn hộ' };
     }
 
     return {
@@ -222,7 +222,7 @@ export async function getUnitById(
     };
   } catch (error) {
     console.error('getUnitById error:', error);
-    return { success: false, message: 'Failed to fetch unit' };
+    return { success: false, message: 'Không thể tải thông tin căn hộ' };
   }
 }
 
@@ -230,7 +230,7 @@ export async function createUnit(
   payload: CreateUnitInput
 ): Promise<ActionResponse<{ unitId: string }>> {
   const session = await getSessionOrError();
-  if (!session) return { success: false, message: 'Unauthorized' };
+  if (!session) return { success: false, message: 'Phiên đăng nhập không hợp lệ' };
 
   const parsed = createUnitSchema.safeParse(payload);
   if (!parsed.success) {
@@ -242,7 +242,7 @@ export async function createUnit(
 
     const hasAccess = await canAccessProperty(session, propertyId);
     if (!hasAccess) {
-      return { success: false, message: 'You do not have access to this property' };
+      return { success: false, message: 'Bạn không có quyền truy cập tài sản này' };
     }
 
     const propertyExists = await prisma.property.findUnique({
@@ -250,7 +250,7 @@ export async function createUnit(
       select: { id: true },
     });
     if (!propertyExists) {
-      return { success: false, message: 'Property not found' };
+      return { success: false, message: 'Không tìm thấy tài sản' };
     }
 
     const duplicate = await prisma.unit.findFirst({
@@ -263,7 +263,7 @@ export async function createUnit(
     if (duplicate) {
       return {
         success: false,
-        errors: { unitCode: ['Unit code already exists in this property'] },
+        errors: { unitCode: ['Mã căn hộ đã tồn tại trong tài sản này'] },
       };
     }
 
@@ -291,12 +291,12 @@ export async function createUnit(
 
     return {
       success: true,
-      message: 'Unit created successfully',
+      message: 'Đã tạo căn hộ thành công',
       data: { unitId: created.id.toString() },
     };
   } catch (error) {
     console.error('createUnit error:', error);
-    return { success: false, message: 'Failed to create unit' };
+    return { success: false, message: 'Không thể tạo căn hộ' };
   }
 }
 
@@ -304,7 +304,7 @@ export async function updateUnit(
   payload: UpdateUnitInput
 ): Promise<ActionResponse<{ unitId: string }>> {
   const session = await getSessionOrError();
-  if (!session) return { success: false, message: 'Unauthorized' };
+  if (!session) return { success: false, message: 'Phiên đăng nhập không hợp lệ' };
 
   const parsed = updateUnitSchema.safeParse(payload);
   if (!parsed.success) {
@@ -317,7 +317,7 @@ export async function updateUnit(
 
     const hasAccess = await canAccessProperty(session, propertyId);
     if (!hasAccess) {
-      return { success: false, message: 'You do not have access to this property' };
+      return { success: false, message: 'Bạn không có quyền truy cập tài sản này' };
     }
 
     const existingUnit = await prisma.unit.findUnique({
@@ -326,11 +326,11 @@ export async function updateUnit(
     });
 
     if (!existingUnit) {
-      return { success: false, message: 'Unit not found' };
+      return { success: false, message: 'Không tìm thấy căn hộ' };
     }
 
     if (existingUnit.propertyId !== propertyId) {
-      return { success: false, message: 'Invalid property/unit relationship' };
+      return { success: false, message: 'Quan hệ tài sản/căn hộ không hợp lệ' };
     }
 
     const duplicate = await prisma.unit.findFirst({
@@ -345,7 +345,7 @@ export async function updateUnit(
     if (duplicate) {
       return {
         success: false,
-        errors: { unitCode: ['Unit code already exists in this property'] },
+        errors: { unitCode: ['Mã căn hộ đã tồn tại trong tài sản này'] },
       };
     }
 
@@ -367,18 +367,18 @@ export async function updateUnit(
 
     return {
       success: true,
-      message: 'Unit updated successfully',
+      message: 'Đã cập nhật căn hộ thành công',
       data: { unitId: updated.id.toString() },
     };
   } catch (error) {
     console.error('updateUnit error:', error);
-    return { success: false, message: 'Failed to update unit' };
+    return { success: false, message: 'Không thể cập nhật căn hộ' };
   }
 }
 
 export async function deleteUnit(payload: DeleteUnitInput): Promise<ActionResponse> {
   const session = await getSessionOrError();
-  if (!session) return { success: false, message: 'Unauthorized' };
+  if (!session) return { success: false, message: 'Phiên đăng nhập không hợp lệ' };
 
   const parsed = deleteUnitSchema.safeParse(payload);
   if (!parsed.success) {
@@ -394,12 +394,12 @@ export async function deleteUnit(payload: DeleteUnitInput): Promise<ActionRespon
     });
 
     if (!unit) {
-      return { success: false, message: 'Unit not found' };
+      return { success: false, message: 'Không tìm thấy căn hộ' };
     }
 
     const hasAccess = await canAccessProperty(session, unit.propertyId);
     if (!hasAccess) {
-      return { success: false, message: 'You do not have access to this unit' };
+      return { success: false, message: 'Bạn không có quyền truy cập căn hộ này' };
     }
 
     const [activeLeaseCount, leaseCount, expenseCount, alertCount] = await Promise.all([
@@ -429,7 +429,7 @@ export async function deleteUnit(payload: DeleteUnitInput): Promise<ActionRespon
     if (activeLeaseCount > 0) {
       return {
         success: false,
-        message: 'Terminate the active lease before removing this unit',
+        message: 'Vui lòng kết thúc hợp đồng thuê đang hiệu lực trước khi xóa căn hộ này',
       };
     }
 
@@ -455,7 +455,7 @@ export async function deleteUnit(payload: DeleteUnitInput): Promise<ActionRespon
             status: 'REJECTED',
             reviewedAt: archivedAt,
             reviewedById: parseBigInt(session.userId),
-            rejectionNote: 'Automatically closed because the unit was archived.',
+            rejectionNote: 'Tự động đóng vì căn hộ đã được lưu trữ.',
           },
         }),
         prisma.unit.update({
@@ -473,7 +473,7 @@ export async function deleteUnit(payload: DeleteUnitInput): Promise<ActionRespon
 
       return {
         success: true,
-        message: 'Unit archived successfully',
+        message: 'Đã lưu trữ căn hộ thành công',
       };
     }
 
@@ -491,9 +491,9 @@ export async function deleteUnit(payload: DeleteUnitInput): Promise<ActionRespon
       }),
     ]);
 
-    return { success: true, message: 'Unit deleted successfully' };
+    return { success: true, message: 'Đã xóa căn hộ thành công' };
   } catch (error) {
     console.error('deleteUnit error:', error);
-    return { success: false, message: 'Failed to delete unit' };
+    return { success: false, message: 'Không thể xóa căn hộ' };
   }
 }

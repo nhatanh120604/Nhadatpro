@@ -56,11 +56,11 @@ const registrationRedirect: Record<Extract<Role, 'OWNER' | 'TENANT' | 'MANAGER'>
 
 function mapDuplicateFieldMessage(target: string) {
   if (target.includes('email')) {
-    return { email: ['Email already exists'] } as Record<string, string[]>;
+    return { email: ['Email đã được sử dụng'] } as Record<string, string[]>;
   }
 
   if (target.includes('phone')) {
-    return { phone: ['Phone number already exists'] } as Record<string, string[]>;
+    return { phone: ['Số điện thoại đã được sử dụng'] } as Record<string, string[]>;
   }
 
   return undefined;
@@ -158,12 +158,12 @@ export async function loginAction(
     });
 
     if (!user || user.status !== 'ACTIVE') {
-      return { success: false, message: 'Invalid email or inactive account' };
+      return { success: false, message: 'Email không đúng hoặc tài khoản đã bị khóa' };
     }
 
     const passwordsMatch = await bcrypt.compare(password, user.passwordHash);
     if (!passwordsMatch) {
-      return { success: false, message: 'Incorrect password' };
+      return { success: false, message: 'Mật khẩu không chính xác' };
     }
 
     const roleName = user.role.name as Role;
@@ -183,10 +183,10 @@ export async function loginAction(
     if (error instanceof Error && error.message.includes('JWT_SECRET')) {
       return {
         success: false,
-        message: 'Server configuration is incomplete: JWT_SECRET is missing.',
+        message: 'Cấu hình hệ thống chưa đầy đủ: thiếu JWT_SECRET.',
       };
     }
-    return { success: false, message: 'Unable to sign in right now' };
+    return { success: false, message: 'Hiện không thể đăng nhập. Vui lòng thử lại sau.' };
   }
 }
 
@@ -226,7 +226,7 @@ async function registerUser(
 
     return {
       success: true,
-      message: 'Registration successful',
+      message: 'Đăng ký tài khoản thành công',
       data: {
         redirectTo: registrationRedirect[role],
       },
@@ -256,10 +256,10 @@ async function registerUser(
     if (error instanceof Error && error.message.includes('JWT_SECRET')) {
       return {
         success: false,
-        message: 'Server configuration is incomplete: JWT_SECRET is missing.',
+        message: 'Cấu hình hệ thống chưa đầy đủ: thiếu JWT_SECRET.',
       };
     }
-    return { success: false, message: 'Unable to create account right now' };
+    return { success: false, message: 'Hiện không thể tạo tài khoản. Vui lòng thử lại sau.' };
   }
 }
 
@@ -300,7 +300,7 @@ export async function beginGoogleAuth({
     };
   } catch (error) {
     console.error('beginGoogleAuth error:', error);
-    return { success: false, message: 'Unable to start Google sign-in right now' };
+    return { success: false, message: 'Hiện không thể bắt đầu đăng nhập Google. Vui lòng thử lại sau.' };
   }
 }
 
@@ -314,7 +314,7 @@ export async function handleGoogleCallback({
     await clearGoogleOAuthState();
 
     if (!storedState || storedState.nonce !== state) {
-      return { success: false, message: 'Google sign-in could not be verified' };
+      return { success: false, message: 'Không thể xác thực phiên đăng nhập Google' };
     }
 
     const token = await exchangeGoogleCodeForToken({ code, origin });
@@ -322,7 +322,7 @@ export async function handleGoogleCallback({
     const providerEmail = googleUser.email?.toLowerCase();
 
     if (!providerEmail || !googleUser.sub) {
-      return { success: false, message: 'Google account did not provide a valid email' };
+      return { success: false, message: 'Tài khoản Google không cung cấp email hợp lệ' };
     }
 
     const linkedAccount = await prisma.authAccount.findFirst({
@@ -341,7 +341,7 @@ export async function handleGoogleCallback({
 
     if (linkedAccount) {
       if (linkedAccount.user.status !== 'ACTIVE') {
-        return { success: false, message: 'This account is inactive and cannot sign in' };
+        return { success: false, message: 'Tài khoản này đang bị khóa và không thể đăng nhập' };
       }
 
       const roleName = linkedAccount.user.role.name as Role;
@@ -365,7 +365,7 @@ export async function handleGoogleCallback({
 
     if (existingUser) {
       if (existingUser.status !== 'ACTIVE') {
-        return { success: false, message: 'An inactive account already exists for this email' };
+        return { success: false, message: 'Email này đã tồn tại dưới tài khoản bị khóa' };
       }
 
       await setGoogleOnboardingPayload({
@@ -400,7 +400,7 @@ export async function handleGoogleCallback({
     };
   } catch (error) {
     console.error('handleGoogleCallback error:', error);
-    return { success: false, message: 'Unable to complete Google sign-in right now' };
+    return { success: false, message: 'Hiện không thể hoàn tất đăng nhập Google. Vui lòng thử lại sau.' };
   }
 }
 
@@ -414,7 +414,7 @@ export async function completeGoogleOnboarding(
 
   const onboarding = await getGoogleOnboardingPayload();
   if (!onboarding || onboarding.mode !== 'create') {
-    return { success: false, message: 'Google onboarding session has expired' };
+    return { success: false, message: 'Phiên thiết lập tài khoản Google đã hết hạn' };
   }
 
   try {
@@ -478,7 +478,7 @@ export async function completeGoogleOnboarding(
     }
 
     console.error('completeGoogleOnboarding error:', error);
-    return { success: false, message: 'Unable to create your account right now' };
+    return { success: false, message: 'Hiện không thể tạo tài khoản của bạn. Vui lòng thử lại sau.' };
   }
 }
 
@@ -492,7 +492,7 @@ export async function confirmGoogleAccountLink(
 
   const onboarding = await getGoogleOnboardingPayload();
   if (!onboarding || onboarding.mode !== 'link') {
-    return { success: false, message: 'Google linking session has expired' };
+    return { success: false, message: 'Phiên liên kết Google đã hết hạn' };
   }
 
   try {
@@ -502,7 +502,7 @@ export async function confirmGoogleAccountLink(
     });
 
     if (!existingUser || existingUser.status !== 'ACTIVE') {
-      return { success: false, message: 'This account is unavailable for linking' };
+      return { success: false, message: 'Tài khoản này hiện không thể liên kết' };
     }
 
     const existingLink = await prisma.authAccount.findFirst({
@@ -542,6 +542,6 @@ export async function confirmGoogleAccountLink(
     };
   } catch (error) {
     console.error('confirmGoogleAccountLink error:', error);
-    return { success: false, message: 'Unable to link your Google account right now' };
+    return { success: false, message: 'Hiện không thể liên kết tài khoản Google. Vui lòng thử lại sau.' };
   }
 }

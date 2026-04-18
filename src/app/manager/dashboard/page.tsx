@@ -166,7 +166,7 @@ export default function ManagerDashboardPage() {
     <div className="space-y-8">
       <section className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
         <div className="shell-card p-7 md:p-8">
-          <p className="warm-badge">Không gian vận hành</p>
+          <p className="warm-badge">Bảng điều hành</p>
           <h1 className="mt-5 font-headline text-5xl font-extrabold text-brand-ink">Quản lý tài sản được giao</h1>
           <p className="mt-4 max-w-2xl text-lg leading-8 text-brand-muted">
             Theo dõi các bất động sản bạn đang phụ trách, xử lý yêu cầu kết nối người thuê và tiếp nhận thêm tài sản mới khi cần.
@@ -209,7 +209,7 @@ export default function ManagerDashboardPage() {
         <StatCard icon={Building2} label="Tài sản phụ trách" value={String(metrics?.totalProperties ?? 0)} />
         <StatCard icon={DoorOpen} label="Tổng căn hộ" value={String(metrics?.totalUnits ?? 0)} />
         <StatCard icon={ClipboardList} label="Căn còn trống" value={String(metrics?.vacantUnits ?? 0)} />
-        <StatCard icon={Percent} label="Tỷ lệ lấp đầy" value={`${metrics?.occupancyRate ?? 0}%`} />
+        <StatCard icon={Percent} label="Tỷ lệ có người thuê" value={`${metrics?.occupancyRate ?? 0}%`} />
       </section>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">

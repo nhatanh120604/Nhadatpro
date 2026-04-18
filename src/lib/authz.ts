@@ -141,11 +141,11 @@ export async function getAssignedPropertyCount(session: AppSession) {
 export function normalizeActionError(error: unknown, fallbackMessage: string) {
   if (error instanceof Error) {
     if (error.message === 'UNAUTHORIZED') {
-      return { message: 'Unauthorized' };
+      return { message: 'Phiên đăng nhập không hợp lệ' };
     }
 
     if (error.message === 'FORBIDDEN') {
-      return { message: 'Forbidden' };
+      return { message: 'Bạn không có quyền thực hiện thao tác này' };
     }
   }
 

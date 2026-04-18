@@ -53,9 +53,9 @@ export default function NewUnitPage() {
         <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brand-primary-deep">Thêm căn mới</p>
-            <h1 className="mt-3 font-headline text-4xl font-extrabold text-brand-ink">Thiết lập thông số đơn vị cho thuê</h1>
+            <h1 className="mt-3 font-headline text-4xl font-extrabold text-brand-ink">Thiết lập thông tin căn cho thuê</h1>
             <p className="mt-3 max-w-2xl text-base leading-7 text-brand-muted">
-              Ghi nhận cấu hình của từng căn để làm mặc định cho lời mời người thuê, hợp đồng và theo dõi lấp đầy trong hệ thống.
+              Ghi nhận cấu hình của từng căn để làm mặc định cho lời mời người thuê, hợp đồng và theo dõi trạng thái thuê trong hệ thống.
             </p>
           </div>
           <Link className="btn-secondary px-4 py-3 text-sm" href={`/owner/properties/${id}`}>
@@ -121,7 +121,7 @@ export default function NewUnitPage() {
 
             <div className="space-y-2 md:col-span-2">
               <label className="text-sm font-semibold text-brand-ink">Tình trạng nội thất</label>
-              <select className="input-shell w-full px-4 py-3" name="furnishingStatus">
+              <select aria-label="Tình trạng nội thất" className="input-shell w-full px-4 py-3" name="furnishingStatus" title="Tình trạng nội thất">
                 <option value="UNFURNISHED">Để trống</option>
                 <option value="PARTIALLY_FURNISHED">Nội thất cơ bản</option>
                 <option value="FULLY_FURNISHED">Đầy đủ nội thất</option>

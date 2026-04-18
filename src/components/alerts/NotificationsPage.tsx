@@ -83,7 +83,7 @@ export default function NotificationsPage() {
           <div className="flex flex-wrap gap-3">
             <button className="btn-secondary px-5 py-3.5 text-sm" disabled={busy === 'all'} onClick={handleMarkAllRead} type="button">
               <CheckCircle2 className="h-4 w-4" />
-              <span>Đánh dấu đã đọc</span>
+              <span>Đánh dấu tất cả đã đọc</span>
             </button>
             <button className="btn-primary px-5 py-3.5 text-sm" onClick={() => void load()} type="button">
               <RefreshCw className="h-4 w-4" />

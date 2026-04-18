@@ -16,7 +16,7 @@ export default async function GoogleOnboardingPage() {
       <div className="mx-auto max-w-3xl shell-card p-6 md:p-10">
         <div className="mb-8 flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-brand-primary-deep">Google Sign-In</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-brand-primary-deep">Đăng nhập Google</p>
             <h1 className="mt-3 font-headline text-4xl font-extrabold text-brand-ink">
               {onboarding.mode === 'link' ? 'Xác nhận liên kết tài khoản' : 'Hoàn tất hồ sơ đăng ký'}
             </h1>

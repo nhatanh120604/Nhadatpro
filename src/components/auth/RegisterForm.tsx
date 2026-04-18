@@ -30,10 +30,10 @@ export function RegisterForm({ role, googleAuthEnabled = true }: RegisterFormPro
         : 'Tạo tài khoản chủ sở hữu';
   const subtitle =
     role === 'TENANT'
-      ? 'Đăng ký xong, bạn có thể nhập mã kết nối căn hộ do chủ nhà hoặc quản gia cung cấp.'
+      ? 'Sau khi đăng ký, bạn có thể nhập mã kết nối căn hộ do chủ nhà hoặc quản gia cung cấp.'
       : role === 'MANAGER'
-        ? 'Đăng ký xong, bạn có thể nhập mã quản lý tài sản do chủ sở hữu gửi.'
-        : 'Đăng ký xong, bạn có thể bắt đầu tạo tài sản, phân công quản gia và quản lý danh mục đầu tư.';
+        ? 'Sau khi đăng ký, bạn có thể nhập mã quản lý tài sản do chủ sở hữu gửi.'
+        : 'Sau khi đăng ký, bạn có thể bắt đầu tạo tài sản, phân công quản gia và theo dõi danh mục đầu tư.';
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -118,7 +118,7 @@ export function RegisterForm({ role, googleAuthEnabled = true }: RegisterFormPro
 
             <div className="flex flex-wrap gap-3">
               <button className="btn-secondary px-5 py-4 text-base" onClick={() => setConfirming(false)} type="button">
-                Chỉnh sửa lại
+                Chỉnh sửa thông tin
               </button>
               <button className="btn-primary px-5 py-4 text-base" disabled={loading} onClick={() => void handleConfirmedSubmit()} type="button">
                 <span>{loading ? 'Đang tạo tài khoản...' : 'Xác nhận và tạo tài khoản'}</span>
@@ -175,7 +175,7 @@ export function RegisterForm({ role, googleAuthEnabled = true }: RegisterFormPro
             </div>
 
             <button className="btn-primary mt-2 w-full px-5 py-4 text-base" disabled={loading} type="submit">
-              <span>Tiếp tục xác nhận</span>
+              <span>Tiếp tục</span>
               <ArrowRight className="h-4 w-4" />
             </button>
           </form>
@@ -199,8 +199,8 @@ export function RegisterForm({ role, googleAuthEnabled = true }: RegisterFormPro
 
         <div className="mt-4 rounded-2xl border border-brand-border bg-white/70 px-4 py-4 text-sm leading-7 text-brand-muted">
           {googleAuthEnabled
-            ? 'Nếu bạn đăng nhập bằng Google lần đầu, hệ thống vẫn sẽ yêu cầu chọn vai trò và xác nhận trước khi tạo hoặc liên kết tài khoản.'
-            : 'Đăng nhập Google hiện chưa được cấu hình trong môi trường này. Bạn vẫn có thể đăng ký thủ công bằng email và mật khẩu.'}
+            ? 'Nếu đăng nhập Google lần đầu, hệ thống sẽ yêu cầu bạn chọn vai trò và xác nhận thông tin trước khi tạo hoặc liên kết tài khoản.'
+            : 'Đăng nhập Google hiện chưa được cấu hình trong môi trường này. Bạn vẫn có thể đăng ký bằng email và mật khẩu.'}
         </div>
       </div>
     </div>

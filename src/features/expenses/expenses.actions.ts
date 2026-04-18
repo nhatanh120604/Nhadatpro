@@ -272,7 +272,7 @@ export async function listExpenses(
       data: expenses.map((expense) => mapExpense(session, expense)),
     };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to load expenses') };
+    return { success: false, ...normalizeActionError(error, 'Không thể tải danh sách chi phí') };
   }
 }
 
@@ -328,7 +328,7 @@ export async function getExpenseSummary(
       },
     };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to load expense summary') };
+    return { success: false, ...normalizeActionError(error, 'Không thể tải tổng hợp chi phí') };
   }
 }
 
@@ -372,15 +372,15 @@ export async function createExpense(
 
     return {
       success: true,
-      message: 'Expense created successfully',
+      message: 'Đã ghi nhận chi phí thành công',
       data: { expenseId: expense.id.toString() },
     };
   } catch (error) {
     if (error instanceof Error && error.message === 'UNIT_PROPERTY_MISMATCH') {
-      return { success: false, message: 'Selected unit does not belong to this property' };
+      return { success: false, message: 'Căn hộ đã chọn không thuộc tài sản này' };
     }
 
-    return { success: false, ...normalizeActionError(error, 'Failed to create expense') };
+    return { success: false, ...normalizeActionError(error, 'Không thể tạo chi phí') };
   }
 }
 
@@ -559,7 +559,7 @@ export async function getRevenueAnalytics(
       },
     };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to load revenue analytics') };
+    return { success: false, ...normalizeActionError(error, 'Không thể tải phân tích doanh thu') };
   }
 }
 
@@ -580,7 +580,7 @@ export async function updateExpense(payload: UpdateExpenseInput): Promise<Action
     });
 
     if (!expense || expense.status !== 'ACTIVE') {
-      return { success: false, message: 'Active expense not found' };
+      return { success: false, message: 'Không tìm thấy khoản chi đang hiệu lực' };
     }
 
     await assertPropertyAccess(session, expense.propertyId);
@@ -610,13 +610,13 @@ export async function updateExpense(payload: UpdateExpenseInput): Promise<Action
       },
     });
 
-    return { success: true, message: 'Expense updated successfully' };
+    return { success: true, message: 'Đã cập nhật chi phí thành công' };
   } catch (error) {
     if (error instanceof Error && error.message === 'UNIT_PROPERTY_MISMATCH') {
-      return { success: false, message: 'Selected unit does not belong to this property' };
+      return { success: false, message: 'Căn hộ đã chọn không thuộc tài sản này' };
     }
 
-    return { success: false, ...normalizeActionError(error, 'Failed to update expense') };
+    return { success: false, ...normalizeActionError(error, 'Không thể cập nhật chi phí') };
   }
 }
 
@@ -636,7 +636,7 @@ export async function voidExpense(payload: VoidExpenseInput): Promise<ActionResp
     });
 
     if (!expense || expense.status !== 'ACTIVE') {
-      return { success: false, message: 'Active expense not found' };
+      return { success: false, message: 'Không tìm thấy khoản chi đang hiệu lực' };
     }
 
     await assertPropertyAccess(session, expense.propertyId);
@@ -651,8 +651,8 @@ export async function voidExpense(payload: VoidExpenseInput): Promise<ActionResp
       },
     });
 
-    return { success: true, message: 'Expense voided successfully' };
+    return { success: true, message: 'Đã hủy ghi nhận chi phí thành công' };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to void expense') };
+    return { success: false, ...normalizeActionError(error, 'Không thể hủy chi phí') };
   }
 }

@@ -137,7 +137,7 @@ export default function OwnerRequestsPage() {
     <div className="space-y-8">
       <section className="shell-card p-7 md:p-8">
         <p className="warm-badge">Trung tâm xử lý</p>
-        <h1 className="mt-5 font-headline text-5xl font-extrabold text-brand-ink">Hộp thư yêu cầu</h1>
+        <h1 className="mt-5 font-headline text-5xl font-extrabold text-brand-ink">Trung tâm yêu cầu</h1>
         <p className="mt-4 max-w-3xl text-lg leading-8 text-brand-muted">
           Duyệt kết nối người thuê, phê duyệt quản gia và xử lý các yêu cầu chấm dứt hợp đồng từ một nơi duy nhất.
         </p>

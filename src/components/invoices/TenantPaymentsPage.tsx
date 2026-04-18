@@ -127,7 +127,7 @@ export default function TenantPaymentsPage() {
         <p className="warm-badge">Thanh toán</p>
         <h1 className="mt-5 font-headline text-5xl font-extrabold text-brand-ink">Hóa đơn tiền thuê</h1>
         <p className="mt-4 max-w-3xl text-lg leading-8 text-brand-muted">
-          Xem hóa đơn, chuyển khoản theo hướng dẫn VietQR và gửi chứng từ để được xác nhận thanh toán.
+          Theo dõi hóa đơn, chuyển khoản theo hướng dẫn VietQR và gửi chứng từ để được xác nhận thanh toán.
         </p>
       </section>
 
@@ -202,13 +202,15 @@ export default function TenantPaymentsPage() {
                           max={invoice.remainingBalance}
                           min="1"
                           onChange={(event) => setAmounts((current) => ({ ...current, [invoice.invoiceId]: event.target.value }))}
-                          placeholder="Số tiền đã chuyển"
+                          placeholder="Số tiền đã chuyển (VNĐ)"
                           type="number"
                           value={amounts[invoice.invoiceId] || invoice.remainingBalance}
                         />
                         <select
+                          aria-label="Phương thức thanh toán"
                           className="input-shell"
                           onChange={(event) => setMethods((current) => ({ ...current, [invoice.invoiceId]: event.target.value }))}
+                          title="Phương thức thanh toán"
                           value={methods[invoice.invoiceId] || 'BANK_TRANSFER_QR'}
                         >
                           <option value="BANK_TRANSFER_QR">Chuyển khoản VietQR</option>
@@ -219,19 +221,21 @@ export default function TenantPaymentsPage() {
                       <input
                         className="input-shell"
                         onChange={(event) => setReferences((current) => ({ ...current, [invoice.invoiceId]: event.target.value }))}
-                        placeholder="Mã giao dịch hoặc ghi chú ngân hàng"
+                        placeholder="Mã giao dịch hoặc nội dung ngân hàng"
                         value={references[invoice.invoiceId] || ''}
                       />
                       <textarea
                         className="input-shell min-h-24"
                         onChange={(event) => setNotes((current) => ({ ...current, [invoice.invoiceId]: event.target.value }))}
-                        placeholder="Ghi chú thêm nếu cần"
+                        placeholder="Ghi chú thêm (nếu có)"
                         value={notes[invoice.invoiceId] || ''}
                       />
                       <input
                         accept="image/png,image/jpeg,image/webp,application/pdf"
+                        aria-label="Tải lên chứng từ"
                         className="input-shell"
                         onChange={(event) => setFiles((current) => ({ ...current, [invoice.invoiceId]: event.target.files?.[0] || null }))}
+                        title="Tải lên chứng từ"
                         type="file"
                       />
                       <button className="btn-primary px-5 py-3 text-sm" disabled={busy === invoice.invoiceId} type="submit">
@@ -243,7 +247,7 @@ export default function TenantPaymentsPage() {
                     <div className="shell-muted p-5 text-sm text-brand-muted">
                       {invoice.status === 'PAID'
                         ? 'Hóa đơn này đã được xác nhận thanh toán đầy đủ.'
-                        : 'Hóa đơn đang có chứng từ chờ duyệt hoặc chưa thể gửi thêm thanh toán.'}
+                        : 'Hóa đơn đang có chứng từ chờ duyệt hoặc hiện chưa thể gửi thêm thanh toán.'}
                     </div>
                   )}
                 </div>

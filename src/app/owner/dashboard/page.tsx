@@ -95,7 +95,7 @@ export default function OwnerDashboardPage() {
           <div className="mt-5 space-y-4">
             <div className="rounded-2xl bg-white p-4">
               <p className="text-sm font-semibold text-brand-ink">Ưu tiên kiểm tra các căn đang trống</p>
-              <p className="mt-2 text-sm leading-6 text-brand-muted">Tỷ lệ lấp đầy sẽ cải thiện rõ hơn khi các căn trống được lên mã kết nối và giá thuê kịp thời.</p>
+              <p className="mt-2 text-sm leading-6 text-brand-muted">Tỷ lệ có người thuê sẽ cải thiện rõ khi các căn trống được tạo mã kết nối và cập nhật giá thuê kịp thời.</p>
             </div>
             <div className="rounded-2xl bg-white p-4">
               <p className="text-sm font-semibold text-brand-ink">Duyệt yêu cầu tồn đọng</p>
@@ -118,7 +118,7 @@ export default function OwnerDashboardPage() {
           value={String(totalProperties)}
         />
         <StatCard icon={DoorOpen} label="Tổng căn hộ" value={String(totalUnits)} />
-        <StatCard icon={ClipboardList} label="Đã lấp đầy" value={String(occupiedUnits)} />
+        <StatCard icon={ClipboardList} label="Đã có người thuê" value={String(occupiedUnits)} />
         <StatCard icon={AlertTriangle} label="Cảnh báo mở" value={String((metrics?.overdueInvoiceCount ?? 0) + (metrics?.expiringLeaseCount ?? 0) + (metrics?.oldVacantUnitCount ?? 0) + (metrics?.pendingPaymentReviewCount ?? 0))} />
       </section>
 

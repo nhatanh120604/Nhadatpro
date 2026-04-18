@@ -162,7 +162,7 @@ export async function generateUnitInviteCode(
     const unit = await getUnitWithProperty(unitId);
 
     if (!unit) {
-      return { success: false, message: 'Unit not found' };
+      return { success: false, message: 'Không tìm thấy căn hộ' };
     }
 
     await assertPropertyOwner(session, unit.propertyId);
@@ -198,7 +198,7 @@ export async function generateUnitInviteCode(
       },
     };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to generate unit invite code') };
+    return { success: false, ...normalizeActionError(error, 'Không thể tạo mã mời căn hộ') };
   }
 }
 
@@ -214,7 +214,7 @@ export async function revokeUnitInviteCode(payload: UnitInviteInput): Promise<Ac
     const unit = await getUnitWithProperty(unitId);
 
     if (!unit) {
-      return { success: false, message: 'Unit not found' };
+      return { success: false, message: 'Không tìm thấy căn hộ' };
     }
 
     await assertPropertyOwner(session, unit.propertyId);
@@ -229,9 +229,9 @@ export async function revokeUnitInviteCode(payload: UnitInviteInput): Promise<Ac
       },
     });
 
-    return { success: true, message: 'Unit invite code revoked' };
+    return { success: true, message: 'Đã thu hồi mã mời kết nối căn hộ' };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to revoke unit invite code') };
+    return { success: false, ...normalizeActionError(error, 'Không thể thu hồi mã mời căn hộ') };
   }
 }
 
@@ -268,7 +268,7 @@ export async function requestUnitConnection(
     });
 
     if (!invite) {
-      return { success: false, message: 'Invite code is invalid or expired' };
+      return { success: false, message: 'Mã mời không hợp lệ hoặc đã hết hạn' };
     }
 
     await expirePastActiveLeases({
@@ -297,11 +297,11 @@ export async function requestUnitConnection(
     ]);
 
     if (activeUnitLease) {
-      return { success: false, message: 'This unit already has an active lease' };
+      return { success: false, message: 'Căn hộ này đã có hợp đồng thuê đang hiệu lực' };
     }
 
     if (existingPending) {
-      return { success: false, message: 'You already have a pending request for this unit' };
+      return { success: false, message: 'Bạn đã có một yêu cầu kết nối đang chờ duyệt cho căn hộ này' };
     }
 
     await prisma.unitConnectionRequest.create({
@@ -313,7 +313,7 @@ export async function requestUnitConnection(
       },
     });
 
-    return { success: true, message: 'Connection request submitted' };
+    return { success: true, message: 'Đã gửi yêu cầu kết nối' };
   } catch (error) {
     if (
       typeof error === 'object' &&
@@ -321,10 +321,10 @@ export async function requestUnitConnection(
       'code' in error &&
       error.code === 'P2002'
     ) {
-      return { success: false, message: 'There is already a pending connection request for this unit' };
+      return { success: false, message: 'Đã có yêu cầu kết nối đang chờ duyệt cho căn hộ này' };
     }
 
-    return { success: false, ...normalizeActionError(error, 'Failed to submit connection request') };
+    return { success: false, ...normalizeActionError(error, 'Không thể gửi yêu cầu kết nối') };
   }
 }
 
@@ -394,7 +394,7 @@ export async function getTenantConnectionState(): Promise<ActionResponse<TenantC
       },
     };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to load tenant connection state') };
+    return { success: false, ...normalizeActionError(error, 'Không thể tải trạng thái kết nối của người thuê') };
   }
 }
 
@@ -462,7 +462,7 @@ export async function listUnitConnectionRequests(): Promise<ActionResponse<UnitC
       })),
     };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to load unit connection requests') };
+    return { success: false, ...normalizeActionError(error, 'Không thể tải danh sách yêu cầu kết nối căn hộ') };
   }
 }
 
@@ -504,7 +504,7 @@ export async function getUnitConnectionRequestById(
     });
 
     if (!request || request.status !== 'PENDING') {
-      return { success: false, message: 'Connection request not found' };
+      return { success: false, message: 'Không tìm thấy yêu cầu kết nối' };
     }
 
     await assertPropertyAccess(session, request.unit.property.id);
@@ -527,7 +527,7 @@ export async function getUnitConnectionRequestById(
       },
     };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to load connection request detail') };
+    return { success: false, ...normalizeActionError(error, 'Không thể tải chi tiết yêu cầu kết nối') };
   }
 }
 
@@ -561,7 +561,7 @@ export async function approveUnitConnectionAndCreateLease(
     });
 
     if (!request || request.status !== 'PENDING') {
-      return { success: false, message: 'Connection request is no longer available' };
+      return { success: false, message: 'Yêu cầu kết nối không còn hiệu lực' };
     }
 
     await assertPropertyAccess(session, request.unit.property.id);
@@ -652,7 +652,7 @@ export async function approveUnitConnectionAndCreateLease(
           status: 'REJECTED',
           reviewedAt: reviewTime,
           reviewedById: parseId(session.userId),
-          rejectionNote: 'Automatically closed after another lease was approved for this unit.',
+          rejectionNote: 'Tự động đóng vì một hợp đồng thuê khác đã được duyệt cho căn hộ này.',
         },
       });
 
@@ -671,19 +671,19 @@ export async function approveUnitConnectionAndCreateLease(
 
     return {
       success: true,
-      message: 'Lease created successfully',
+      message: 'Đã tạo hợp đồng thuê thành công',
       data: { leaseId: result.id.toString() },
     };
   } catch (error) {
     if (error instanceof Error && error.message === 'UNIT_ALREADY_LEASED') {
-      return { success: false, message: 'This unit already has an active lease' };
+      return { success: false, message: 'Căn hộ này đã có hợp đồng thuê đang hiệu lực' };
     }
 
     if (error instanceof Error && error.message === 'REQUEST_NOT_PENDING') {
-      return { success: false, message: 'Connection request is no longer available' };
+      return { success: false, message: 'Yêu cầu kết nối không còn hiệu lực' };
     }
 
-    return { success: false, ...normalizeActionError(error, 'Failed to approve request and create lease') };
+    return { success: false, ...normalizeActionError(error, 'Không thể duyệt yêu cầu và tạo hợp đồng thuê') };
   }
 }
 
@@ -715,7 +715,7 @@ export async function rejectUnitConnectionRequest(
     });
 
     if (!request || request.status !== 'PENDING') {
-      return { success: false, message: 'Connection request is no longer available' };
+      return { success: false, message: 'Yêu cầu kết nối không còn hiệu lực' };
     }
 
     await assertPropertyAccess(session, request.unit.property.id);
@@ -730,9 +730,9 @@ export async function rejectUnitConnectionRequest(
       },
     });
 
-    return { success: true, message: 'Connection request rejected' };
+    return { success: true, message: 'Đã từ chối yêu cầu kết nối' };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to reject connection request') };
+    return { success: false, ...normalizeActionError(error, 'Không thể từ chối yêu cầu kết nối') };
   }
 }
 
@@ -788,7 +788,7 @@ export async function getTenantContracts(): Promise<ActionResponse<TenantContrac
       })),
     };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to load tenant contracts') };
+    return { success: false, ...normalizeActionError(error, 'Không thể tải hợp đồng của người thuê') };
   }
 }
 
@@ -800,7 +800,7 @@ export async function getTenantContract(): Promise<ActionResponse<TenantContract
 
   const contract = response.data?.[0];
   if (!contract) {
-    return { success: false, message: 'No lease found for this tenant' };
+    return { success: false, message: 'Không tìm thấy hợp đồng thuê của người thuê này' };
   }
 
   return { success: true, data: contract };
@@ -830,11 +830,11 @@ export async function requestEarlyTermination(
     });
 
     if (!lease) {
-      return { success: false, message: 'Active lease not found' };
+      return { success: false, message: 'Không tìm thấy hợp đồng thuê đang hiệu lực' };
     }
 
     if (lease.terminationRequestedAt) {
-      return { success: false, message: 'A termination request has already been submitted' };
+      return { success: false, message: 'Đã có yêu cầu chấm dứt hợp đồng được gửi trước đó' };
     }
 
     await prisma.lease.update({
@@ -845,9 +845,9 @@ export async function requestEarlyTermination(
       },
     });
 
-    return { success: true, message: 'Termination request submitted' };
+    return { success: true, message: 'Đã gửi yêu cầu chấm dứt hợp đồng' };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to request early termination') };
+    return { success: false, ...normalizeActionError(error, 'Không thể gửi yêu cầu chấm dứt hợp đồng sớm') };
   }
 }
 
@@ -913,7 +913,7 @@ export async function listLeaseTerminationRequests(): Promise<
       })),
     };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to load lease termination requests') };
+    return { success: false, ...normalizeActionError(error, 'Không thể tải danh sách yêu cầu chấm dứt hợp đồng') };
   }
 }
 
@@ -947,7 +947,7 @@ export async function executeLeaseTermination(
     });
 
     if (!lease || lease.status !== 'ACTIVE') {
-      return { success: false, message: 'Active lease not found' };
+      return { success: false, message: 'Không tìm thấy hợp đồng thuê đang hiệu lực' };
     }
 
     await assertPropertyAccess(session, lease.unit.property.id);
@@ -971,8 +971,8 @@ export async function executeLeaseTermination(
       }),
     ]);
 
-    return { success: true, message: 'Lease terminated successfully' };
+    return { success: true, message: 'Đã kết thúc hợp đồng thuê thành công' };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to terminate lease') };
+    return { success: false, ...normalizeActionError(error, 'Không thể kết thúc hợp đồng thuê') };
   }
 }

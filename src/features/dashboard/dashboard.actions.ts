@@ -268,6 +268,6 @@ export async function getDashboardMetrics(): Promise<DashboardActionResponse> {
     };
   } catch (error) {
     console.error('getDashboardMetrics error:', error);
-    return { success: false, message: 'Failed to load dashboard metrics' };
+    return { success: false, message: 'Không thể tải dữ liệu tổng quan' };
   }
 }

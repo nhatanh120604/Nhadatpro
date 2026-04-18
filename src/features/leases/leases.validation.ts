@@ -4,16 +4,16 @@ const idSchema = z
   .string()
   .trim()
   .min(1, 'Id is required')
-  .regex(/^\d+$/, 'Id must be a numeric string');
+  .regex(/^\d+$/, 'ID phải là chuỗi số');
 
 const optionalMoneySchema = z.coerce
   .number()
-  .min(0, 'Value must be non-negative');
+  .min(0, 'Giá trị phải lớn hơn hoặc bằng 0');
 
 const optionalTextSchema = z
   .string()
   .trim()
-  .max(1000, 'Text must be at most 1000 characters')
+  .max(1000, 'Nội dung tối đa 1000 ký tự')
   .optional()
   .or(z.literal(''));
 
@@ -44,13 +44,13 @@ export const approveUnitConnectionAndCreateLeaseSchema = z
     startDate: z.string().trim().min(1, 'Start date is required'),
     endDate: z.string().trim().min(1, 'End date is required'),
     dueDayOfMonth: z.coerce.number().int().min(1).max(28),
-    baseRent: z.coerce.number().positive('Base rent must be greater than zero'),
+    baseRent: z.coerce.number().positive('Tiền thuê cơ bản phải lớn hơn 0'),
     depositAmount: optionalMoneySchema,
     managementFee: optionalMoneySchema,
     utilityNote: optionalTextSchema,
   })
   .refine((value) => new Date(value.endDate) > new Date(value.startDate), {
-    message: 'End date must be after start date',
+    message: 'Ngày kết thúc phải sau ngày bắt đầu',
     path: ['endDate'],
   });
 

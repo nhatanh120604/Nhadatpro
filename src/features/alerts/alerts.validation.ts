@@ -11,7 +11,7 @@ export const idSchema = z
   .string()
   .trim()
   .min(1, 'Id is required')
-  .regex(/^\d+$/, 'Id must be a numeric string');
+  .regex(/^\d+$/, 'ID phải là chuỗi số');
 
 export const listAlertsSchema = z.object({
   status: z.enum(['OPEN', 'RESOLVED', 'ALL']).default('OPEN'),

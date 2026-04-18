@@ -17,22 +17,22 @@ export const idSchema = z
   .string()
   .trim()
   .min(1, 'Id is required')
-  .regex(/^\d+$/, 'Id must be a numeric string');
+  .regex(/^\d+$/, 'ID phải là chuỗi số');
 
 const optionalIdSchema = idSchema.optional().or(z.literal(''));
 
 const optionalTextSchema = z
   .string()
   .trim()
-  .max(1000, 'Text must be at most 1000 characters')
+  .max(1000, 'Nội dung tối đa 1000 ký tự')
   .optional()
   .or(z.literal(''));
 
 const optionalUrlSchema = z
   .string()
   .trim()
-  .max(500, 'URL must be at most 500 characters')
-  .url('Receipt URL must be valid')
+  .max(500, 'Đường dẫn tối đa 500 ký tự')
+  .url('Đường dẫn chứng từ không hợp lệ')
   .optional()
   .or(z.literal(''));
 
@@ -42,13 +42,13 @@ const expenseBaseSchema = z.object({
   category: z.enum(expenseCategories),
   amount: z.coerce
     .number()
-    .positive('Amount must be greater than zero')
+    .positive('Số tiền phải lớn hơn 0')
     .max(999999999999, 'Amount is too large'),
   expenseDate: z.string().trim().min(1, 'Expense date is required'),
   vendorName: z
     .string()
     .trim()
-    .max(255, 'Vendor name must be at most 255 characters')
+    .max(255, 'Tên nhà cung cấp tối đa 255 ký tự')
     .optional()
     .or(z.literal('')),
   note: optionalTextSchema,

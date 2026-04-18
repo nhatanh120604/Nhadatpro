@@ -92,7 +92,7 @@ export function LeaseApprovalForm({ rolePrefix }: LeaseApprovalFormProps) {
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brand-primary-deep">Duyệt kết nối</p>
           <h1 className="mt-3 font-headline text-5xl font-extrabold text-brand-ink">Tạo hợp đồng thuê</h1>
-          <p className="mt-3 text-base leading-7 text-brand-muted">Chuyển yêu cầu kết nối của người thuê thành hợp đồng đang hiệu lực.</p>
+          <p className="mt-3 text-base leading-7 text-brand-muted">Xác nhận yêu cầu kết nối của người thuê và tạo hợp đồng có hiệu lực.</p>
         </div>
         <Link className="btn-secondary px-4 py-3 text-sm" href={`/${rolePrefix}/requests`}>
           <ArrowLeft className="h-4 w-4" />
@@ -136,7 +136,7 @@ export function LeaseApprovalForm({ rolePrefix }: LeaseApprovalFormProps) {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-brand-ink" htmlFor="dueDayOfMonth">Ngày đến hạn thanh toán</label>
+            <label className="text-sm font-semibold text-brand-ink" htmlFor="dueDayOfMonth">Ngày đến hạn thanh toán hằng tháng</label>
             <input className="input-shell" defaultValue={5} id="dueDayOfMonth" max={28} min={1} name="dueDayOfMonth" type="number" />
           </div>
 
@@ -158,11 +158,11 @@ export function LeaseApprovalForm({ rolePrefix }: LeaseApprovalFormProps) {
 
         <div className="space-y-2">
           <label className="text-sm font-semibold text-brand-ink" htmlFor="utilityNote">Ghi chú tiện ích</label>
-          <textarea className="input-shell min-h-32" id="utilityNote" name="utilityNote" placeholder="Ví dụ: chỉ số điện nước ban đầu, cách tính tiện ích, ghi chú bàn giao..." />
+          <textarea className="input-shell min-h-32" id="utilityNote" name="utilityNote" placeholder="Ví dụ: chỉ số điện, nước ban đầu; cách tính tiện ích; ghi chú bàn giao..." />
         </div>
 
         <button className="btn-primary px-5 py-4 text-base" disabled={submitting} type="submit">
-          <span>{submitting ? 'Đang tạo hợp đồng...' : 'Tạo hợp đồng và duyệt yêu cầu'}</span>
+          <span>{submitting ? 'Đang tạo hợp đồng...' : 'Duyệt yêu cầu và tạo hợp đồng'}</span>
           <ArrowRight className="h-4 w-4" />
         </button>
       </form>

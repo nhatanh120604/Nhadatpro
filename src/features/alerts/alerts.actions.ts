@@ -103,7 +103,7 @@ export async function listMyAlerts(
       })),
     };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to load alerts') };
+    return { success: false, ...normalizeActionError(error, 'Không thể tải thông báo') };
   }
 }
 
@@ -124,7 +124,7 @@ export async function markAlertRead(payload: MarkAlertReadInput): Promise<Action
     });
 
     if (!row) {
-      return { success: false, message: 'Alert not found' };
+      return { success: false, message: 'Không tìm thấy thông báo' };
     }
 
     await prisma.alertRecipient.update({
@@ -135,9 +135,9 @@ export async function markAlertRead(payload: MarkAlertReadInput): Promise<Action
       },
     });
 
-    return { success: true, message: 'Alert marked as read' };
+    return { success: true, message: 'Đã đánh dấu thông báo là đã đọc' };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to mark alert as read') };
+    return { success: false, ...normalizeActionError(error, 'Không thể đánh dấu đã đọc thông báo') };
   }
 }
 
@@ -156,9 +156,9 @@ export async function markAllAlertsRead(): Promise<ActionResponse> {
       },
     });
 
-    return { success: true, message: 'Alerts marked as read' };
+    return { success: true, message: 'Đã đánh dấu tất cả thông báo là đã đọc' };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to mark alerts as read') };
+    return { success: false, ...normalizeActionError(error, 'Không thể đánh dấu đã đọc các thông báo') };
   }
 }
 
@@ -179,6 +179,6 @@ export async function getUnreadAlertCount(): Promise<ActionResponse<{ count: num
 
     return { success: true, data: { count } };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to load unread alert count') };
+    return { success: false, ...normalizeActionError(error, 'Không thể tải số lượng thông báo chưa đọc') };
   }
 }

@@ -109,9 +109,9 @@ export function UnitEditForm({ rolePrefix }: { rolePrefix: 'owner' | 'manager' }
         <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brand-primary-deep">Chỉnh sửa căn</p>
-            <h1 className="mt-3 font-headline text-4xl font-extrabold text-brand-ink">Cập nhật thông tin đơn vị cho thuê</h1>
+            <h1 className="mt-3 font-headline text-4xl font-extrabold text-brand-ink">Cập nhật thông tin căn cho thuê</h1>
             <p className="mt-3 max-w-2xl text-base leading-7 text-brand-muted">
-              Điều chỉnh mã căn, cấu hình phòng, giá thuê và tiền cọc để dữ liệu vận hành luôn chính xác trên toàn bộ hệ thống.
+              Điều chỉnh mã căn, cấu hình phòng, giá thuê và tiền cọc để dữ liệu vận hành luôn chính xác.
             </p>
           </div>
           <Link className="btn-secondary px-4 py-3 text-sm" href={backHref}>
@@ -127,57 +127,57 @@ export function UnitEditForm({ rolePrefix }: { rolePrefix: 'owner' | 'manager' }
 
           <div className="grid gap-5 md:grid-cols-2">
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-semibold text-brand-ink">
+              <label className="flex items-center gap-2 text-sm font-semibold text-brand-ink" htmlFor="unitCode">
                 <Hash className="h-4 w-4 text-brand-primary-deep" />
                 Mã căn / mã phòng
               </label>
-              <input className="input-shell w-full px-4 py-3" defaultValue={unit.unitCode} name="unitCode" required type="text" />
+              <input className="input-shell w-full px-4 py-3" defaultValue={unit.unitCode} id="unitCode" name="unitCode" required type="text" />
               {formErrors.unitCode ? <p className="text-xs text-red-600">{formErrors.unitCode[0]}</p> : null}
             </div>
 
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-semibold text-brand-ink">
+              <label className="flex items-center gap-2 text-sm font-semibold text-brand-ink" htmlFor="unitName">
                 <Home className="h-4 w-4 text-brand-primary-deep" />
                 Tên hiển thị
               </label>
-              <input className="input-shell w-full px-4 py-3" defaultValue={unit.unitName || ''} name="unitName" type="text" />
+              <input className="input-shell w-full px-4 py-3" defaultValue={unit.unitName || ''} id="unitName" name="unitName" type="text" />
             </div>
 
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-semibold text-brand-ink">
+              <label className="flex items-center gap-2 text-sm font-semibold text-brand-ink" htmlFor="floorNumber">
                 <DoorOpen className="h-4 w-4 text-brand-primary-deep" />
                 Tầng
               </label>
-              <input className="input-shell w-full px-4 py-3" defaultValue={unit.floorNumber ?? ''} name="floorNumber" type="number" />
+              <input className="input-shell w-full px-4 py-3" defaultValue={unit.floorNumber ?? ''} id="floorNumber" name="floorNumber" type="number" />
             </div>
 
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-semibold text-brand-ink">
+              <label className="flex items-center gap-2 text-sm font-semibold text-brand-ink" htmlFor="areaSqm">
                 <Landmark className="h-4 w-4 text-brand-primary-deep" />
                 Diện tích (m²)
               </label>
-              <input className="input-shell w-full px-4 py-3" defaultValue={unit.areaSqm ?? ''} name="areaSqm" step="0.01" type="number" />
+              <input className="input-shell w-full px-4 py-3" defaultValue={unit.areaSqm ?? ''} id="areaSqm" name="areaSqm" step="0.01" type="number" />
             </div>
 
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-semibold text-brand-ink">
+              <label className="flex items-center gap-2 text-sm font-semibold text-brand-ink" htmlFor="bedroomCount">
                 <BedDouble className="h-4 w-4 text-brand-primary-deep" />
                 Số phòng ngủ
               </label>
-              <input className="input-shell w-full px-4 py-3" defaultValue={unit.bedroomCount ?? ''} name="bedroomCount" type="number" />
+              <input className="input-shell w-full px-4 py-3" defaultValue={unit.bedroomCount ?? ''} id="bedroomCount" name="bedroomCount" type="number" />
             </div>
 
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-semibold text-brand-ink">
+              <label className="flex items-center gap-2 text-sm font-semibold text-brand-ink" htmlFor="bathroomCount">
                 <Bath className="h-4 w-4 text-brand-primary-deep" />
                 Số phòng tắm
               </label>
-              <input className="input-shell w-full px-4 py-3" defaultValue={unit.bathroomCount ?? ''} name="bathroomCount" type="number" />
+              <input className="input-shell w-full px-4 py-3" defaultValue={unit.bathroomCount ?? ''} id="bathroomCount" name="bathroomCount" type="number" />
             </div>
 
             <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-semibold text-brand-ink">Tình trạng nội thất</label>
-              <select className="input-shell w-full px-4 py-3" defaultValue={unit.furnishingStatus || 'UNFURNISHED'} name="furnishingStatus">
+              <label className="text-sm font-semibold text-brand-ink" htmlFor="furnishingStatus">Tình trạng nội thất</label>
+              <select className="input-shell w-full px-4 py-3" defaultValue={unit.furnishingStatus || 'UNFURNISHED'} id="furnishingStatus" name="furnishingStatus">
                 <option value="UNFURNISHED">Để trống</option>
                 <option value="PARTIALLY_FURNISHED">Nội thất cơ bản</option>
                 <option value="FULLY_FURNISHED">Đầy đủ nội thất</option>
@@ -185,18 +185,18 @@ export function UnitEditForm({ rolePrefix }: { rolePrefix: 'owner' | 'manager' }
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-brand-ink">Giá thuê mặc định (VNĐ/tháng)</label>
-              <input className="input-shell w-full px-4 py-3" defaultValue={unit.defaultMonthlyRent ?? ''} name="defaultMonthlyRent" type="number" />
+              <label className="text-sm font-semibold text-brand-ink" htmlFor="defaultMonthlyRent">Giá thuê mặc định (VNĐ/tháng)</label>
+              <input className="input-shell w-full px-4 py-3" defaultValue={unit.defaultMonthlyRent ?? ''} id="defaultMonthlyRent" name="defaultMonthlyRent" type="number" />
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-brand-ink">Tiền cọc mặc định (VNĐ)</label>
-              <input className="input-shell w-full px-4 py-3" defaultValue={unit.defaultDeposit ?? ''} name="defaultDeposit" type="number" />
+              <label className="text-sm font-semibold text-brand-ink" htmlFor="defaultDeposit">Tiền cọc mặc định (VNĐ)</label>
+              <input className="input-shell w-full px-4 py-3" defaultValue={unit.defaultDeposit ?? ''} id="defaultDeposit" name="defaultDeposit" type="number" />
             </div>
 
             <div className="space-y-2 md:col-span-2">
-              <label className="text-sm font-semibold text-brand-ink">Tình trạng sử dụng</label>
-              <input className="input-shell w-full cursor-not-allowed px-4 py-3 opacity-70" disabled readOnly value={occupancyLabel} />
+              <label className="text-sm font-semibold text-brand-ink" htmlFor="occupancyStatus">Tình trạng sử dụng</label>
+              <input className="input-shell w-full cursor-not-allowed px-4 py-3 opacity-70" disabled id="occupancyStatus" readOnly value={occupancyLabel} />
               <p className="text-xs text-brand-muted">Trạng thái thuê hiện được giữ nguyên để tránh ảnh hưởng tới hợp đồng và quy trình vận hành.</p>
             </div>
           </div>

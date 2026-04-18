@@ -4,16 +4,16 @@ export const idSchema = z
   .string()
   .trim()
   .min(1, 'Id is required')
-  .regex(/^\d+$/, 'Id must be a numeric string');
+  .regex(/^\d+$/, 'ID phải là chuỗi số');
 
 const moneySchema = z.coerce
   .number()
-  .min(0, 'Amount must be non-negative')
+  .min(0, 'Số tiền phải lớn hơn hoặc bằng 0')
   .max(999999999999, 'Amount is too large');
 
 const positiveMoneySchema = z.coerce
   .number()
-  .positive('Amount must be greater than zero')
+  .positive('Số tiền phải lớn hơn 0')
   .max(999999999999, 'Amount is too large');
 
 export const billingMonthSchema = z.object({
@@ -34,7 +34,7 @@ export const createMonthlyInvoicesSchema = z.object({
         otherFeeAmount: moneySchema.default(0),
       })
     )
-    .min(1, 'At least one invoice is required'),
+    .min(1, 'Cần ít nhất một hóa đơn'),
 });
 
 export const createSingleInvoiceSchema = z.object({
@@ -59,7 +59,7 @@ export const paymentReviewSchema = z.object({
   verificationNote: z
     .string()
     .trim()
-    .max(1000, 'Note must be at most 1000 characters')
+    .max(1000, 'Ghi chú tối đa 1000 ký tự')
     .optional()
     .or(z.literal('')),
 });

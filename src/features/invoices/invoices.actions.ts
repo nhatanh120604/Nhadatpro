@@ -491,7 +491,7 @@ export async function previewMonthlyInvoices(
       })),
     };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to preview invoices') };
+    return { success: false, ...normalizeActionError(error, 'Không thể xem trước hóa đơn') };
   }
 }
 
@@ -571,7 +571,7 @@ export async function createMonthlyInvoices(
       data: { createdCount, skippedCount },
     };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to create monthly invoices') };
+    return { success: false, ...normalizeActionError(error, 'Không thể tạo hóa đơn theo tháng') };
   }
 }
 
@@ -607,7 +607,7 @@ export async function createSingleInvoice(
     });
 
     if (!lease) {
-      return { success: false, message: 'Active lease not found for this billing month' };
+      return { success: false, message: 'Không tìm thấy hợp đồng thuê đang hiệu lực cho kỳ hóa đơn này' };
     }
 
     const invoice = await prisma.$transaction(async (tx) => {
@@ -636,15 +636,15 @@ export async function createSingleInvoice(
 
     return {
       success: true,
-      message: 'Invoice created successfully',
+      message: 'Đã tạo hóa đơn thành công',
       data: { invoiceId: invoice.id.toString() },
     };
   } catch (error) {
     if (error instanceof Error && error.message === 'INVOICE_EXISTS') {
-      return { success: false, message: 'Invoice already exists for this lease and month' };
+      return { success: false, message: 'Hóa đơn cho hợp đồng và tháng này đã tồn tại' };
     }
 
-    return { success: false, ...normalizeActionError(error, 'Failed to create invoice') };
+    return { success: false, ...normalizeActionError(error, 'Không thể tạo hóa đơn') };
   }
 }
 
@@ -743,7 +743,7 @@ export async function listScopedInvoices(
       },
     };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to load invoices') };
+    return { success: false, ...normalizeActionError(error, 'Không thể tải danh sách hóa đơn') };
   }
 }
 
@@ -862,7 +862,7 @@ export async function listTenantInvoices(): Promise<ActionResponse<TenantInvoice
       }),
     };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to load tenant invoices') };
+    return { success: false, ...normalizeActionError(error, 'Không thể tải hóa đơn của người thuê') };
   }
 }
 
@@ -914,7 +914,7 @@ export async function listPendingPaymentProofs(): Promise<ActionResponse<Payment
       })),
     };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to load payment proofs') };
+    return { success: false, ...normalizeActionError(error, 'Không thể tải chứng từ thanh toán') };
   }
 }
 
@@ -944,7 +944,7 @@ export async function verifyPayment(payload: PaymentReviewInput): Promise<Action
     });
 
     if (!payment || payment.verificationStatus !== 'PENDING') {
-      return { success: false, message: 'Pending payment not found' };
+      return { success: false, message: 'Không tìm thấy chứng từ thanh toán đang chờ duyệt' };
     }
 
     await assertPropertyAccess(session, payment.invoice.lease.unit.propertyId);
@@ -962,9 +962,9 @@ export async function verifyPayment(payload: PaymentReviewInput): Promise<Action
       await recalculateInvoiceStatusAfterPayment(payment.invoiceId, tx);
     });
 
-    return { success: true, message: 'Payment verified' };
+    return { success: true, message: 'Đã xác nhận thanh toán' };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to verify payment') };
+    return { success: false, ...normalizeActionError(error, 'Không thể xác nhận thanh toán') };
   }
 }
 
@@ -994,7 +994,7 @@ export async function rejectPayment(payload: PaymentReviewInput): Promise<Action
     });
 
     if (!payment || payment.verificationStatus !== 'PENDING') {
-      return { success: false, message: 'Pending payment not found' };
+      return { success: false, message: 'Không tìm thấy chứng từ thanh toán đang chờ duyệt' };
     }
 
     await assertPropertyAccess(session, payment.invoice.lease.unit.propertyId);
@@ -1012,9 +1012,9 @@ export async function rejectPayment(payload: PaymentReviewInput): Promise<Action
       await recalculateInvoiceStatusAfterPayment(payment.invoiceId, tx);
     });
 
-    return { success: true, message: 'Payment rejected' };
+    return { success: true, message: 'Đã từ chối thanh toán' };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to reject payment') };
+    return { success: false, ...normalizeActionError(error, 'Không thể từ chối thanh toán') };
   }
 }
 
@@ -1044,7 +1044,7 @@ export async function getPaymentProofSignedUrl(
     });
 
     if (!payment) {
-      return { success: false, message: 'Payment not found' };
+      return { success: false, message: 'Không tìm thấy thanh toán' };
     }
 
     if (isTenant(session)) {
@@ -1064,9 +1064,9 @@ export async function getPaymentProofSignedUrl(
       return { success: true, data: { signedUrl: payment.paymentProofUrl } };
     }
 
-    return { success: false, message: 'No proof file is attached to this payment' };
+    return { success: false, message: 'Thanh toán này chưa có tệp chứng từ đính kèm' };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to open payment proof') };
+    return { success: false, ...normalizeActionError(error, 'Không thể mở chứng từ thanh toán') };
   }
 }
 
@@ -1097,7 +1097,7 @@ export async function upsertPropertyReceivingAccount(
           accountNumber: parsed.data.accountNumber,
           accountName: parsed.data.accountName,
           transferNoteTemplate:
-            toNullableString(parsed.data.transferNoteTemplate) || 'Thanh toan {invoiceCode}',
+            toNullableString(parsed.data.transferNoteTemplate) || 'Thanh toán {invoiceCode}',
           isActive: true,
         },
         select: {
@@ -1114,11 +1114,11 @@ export async function upsertPropertyReceivingAccount(
 
     return {
       success: true,
-      message: 'Receiving account saved',
+      message: 'Đã lưu tài khoản nhận tiền',
       data: mapReceivingAccount(created)!,
     };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to save receiving account') };
+    return { success: false, ...normalizeActionError(error, 'Không thể lưu tài khoản nhận tiền') };
   }
 }
 
@@ -1127,7 +1127,7 @@ export async function getPropertyReceivingAccount(payload: {
 }): Promise<ActionResponse<PaymentReceivingAccountData | null>> {
   const parsed = idSchema.safeParse(payload.propertyId);
   if (!parsed.success) {
-    return { success: false, errors: { propertyId: ['Property id must be a numeric string'] } };
+    return { success: false, errors: { propertyId: ['Mã tài sản phải là chuỗi số'] } };
   }
 
   try {
@@ -1153,6 +1153,6 @@ export async function getPropertyReceivingAccount(payload: {
 
     return { success: true, data: mapReceivingAccount(account) };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to load receiving account') };
+    return { success: false, ...normalizeActionError(error, 'Không thể tải tài khoản nhận tiền') };
   }
 }

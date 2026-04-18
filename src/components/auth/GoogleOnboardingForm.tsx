@@ -66,7 +66,7 @@ export function GoogleOnboardingForm({ state }: GoogleOnboardingFormProps) {
     }
 
     setFieldErrors(response.errors || {});
-    setError(response.message || 'Không thể hoàn tất tài khoản Google lúc này');
+    setError(response.message || 'Không thể hoàn tất tài khoản Google vào lúc này');
     setLoading(false);
   };
 
@@ -80,7 +80,7 @@ export function GoogleOnboardingForm({ state }: GoogleOnboardingFormProps) {
       return;
     }
 
-    setError(response.message || 'Không thể liên kết tài khoản Google lúc này');
+    setError(response.message || 'Không thể liên kết tài khoản Google vào lúc này');
     setLoading(false);
   };
 
@@ -92,7 +92,7 @@ export function GoogleOnboardingForm({ state }: GoogleOnboardingFormProps) {
         <div className="rounded-3xl border border-brand-border bg-brand-soft/60 p-5">
           <div className="flex items-center gap-3">
             <Link2 className="h-5 w-5 text-brand-primary-deep" />
-            <p className="font-semibold text-brand-ink">Tìm thấy tài khoản hiện có</p>
+            <p className="font-semibold text-brand-ink">Đã tìm thấy tài khoản hiện có</p>
           </div>
           <div className="mt-5 grid gap-3 md:grid-cols-2">
             <div className="shell-muted p-4 text-sm text-brand-ink">
@@ -111,7 +111,7 @@ export function GoogleOnboardingForm({ state }: GoogleOnboardingFormProps) {
         </div>
 
         <button className="btn-primary px-5 py-4 text-base" disabled={loading} onClick={() => void handleConfirmLink()} type="button">
-          <span>{loading ? 'Đang liên kết...' : 'Xác nhận liên kết và đăng nhập'}</span>
+          <span>{loading ? 'Đang liên kết...' : 'Liên kết và đăng nhập'}</span>
           <ArrowRight className="h-4 w-4" />
         </button>
       </div>
@@ -127,7 +127,7 @@ export function GoogleOnboardingForm({ state }: GoogleOnboardingFormProps) {
           <div className="rounded-3xl border border-brand-border bg-brand-soft/60 p-5">
             <div className="flex items-center gap-3">
               <CheckCircle2 className="h-5 w-5 text-brand-primary-deep" />
-              <p className="font-semibold text-brand-ink">Xác nhận trước khi tạo tài khoản Google</p>
+              <p className="font-semibold text-brand-ink">Xác nhận thông tin trước khi tạo tài khoản Google</p>
             </div>
             <div className="mt-5 grid gap-3 md:grid-cols-2">
               <div className="shell-muted p-4 text-sm text-brand-ink">
@@ -151,7 +151,7 @@ export function GoogleOnboardingForm({ state }: GoogleOnboardingFormProps) {
 
           <div className="flex flex-wrap gap-3">
             <button className="btn-secondary px-5 py-4 text-base" onClick={() => setConfirming(false)} type="button">
-              Chỉnh sửa lại
+              Chỉnh sửa thông tin
             </button>
             <button className="btn-primary px-5 py-4 text-base" disabled={loading} onClick={() => void handleCreateAccount()} type="button">
               <span>{loading ? 'Đang tạo tài khoản...' : 'Xác nhận và tiếp tục'}</span>
@@ -198,7 +198,7 @@ export function GoogleOnboardingForm({ state }: GoogleOnboardingFormProps) {
           </div>
 
           <button className="btn-primary px-5 py-4 text-base" onClick={handleCreateContinue} type="button">
-            <span>Tiếp tục xác nhận</span>
+            <span>Tiếp tục</span>
             <ArrowRight className="h-4 w-4" />
           </button>
         </div>

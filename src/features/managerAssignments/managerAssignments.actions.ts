@@ -87,7 +87,7 @@ export async function generatePropertyManagerInviteCode(
     });
 
     if (!property) {
-      return { success: false, message: 'Property not found' };
+      return { success: false, message: 'Không tìm thấy tài sản' };
     }
 
     const activeAssignment = await prisma.propertyManagerAssignment.findFirst({
@@ -99,7 +99,7 @@ export async function generatePropertyManagerInviteCode(
     });
 
     if (activeAssignment) {
-      return { success: false, message: 'This property already has an active manager' };
+      return { success: false, message: 'Tài sản này đã có quản lý đang hoạt động' };
     }
 
     const inviteCode = generateInviteCode(`MGR${property.propertyCode.toUpperCase()}`);
@@ -133,7 +133,7 @@ export async function generatePropertyManagerInviteCode(
       },
     };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to generate manager invite code') };
+    return { success: false, ...normalizeActionError(error, 'Không thể tạo mã mời quản lý') };
   }
 }
 
@@ -160,9 +160,9 @@ export async function revokePropertyManagerInviteCode(
       },
     });
 
-    return { success: true, message: 'Manager invite code revoked' };
+    return { success: true, message: 'Đã thu hồi mã mời quản lý' };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to revoke manager invite code') };
+    return { success: false, ...normalizeActionError(error, 'Không thể thu hồi mã mời quản lý') };
   }
 }
 
@@ -194,7 +194,7 @@ export async function requestPropertyManagerAssignment(
     });
 
     if (!invite) {
-      return { success: false, message: 'Invite code is invalid or expired' };
+      return { success: false, message: 'Mã mời không hợp lệ hoặc đã hết hạn' };
     }
 
     const [activePropertyAssignment, activeAssignment, pendingRequest] = await Promise.all([
@@ -224,15 +224,15 @@ export async function requestPropertyManagerAssignment(
     ]);
 
     if (activePropertyAssignment) {
-      return { success: false, message: 'This property already has an active manager' };
+      return { success: false, message: 'Tài sản này đã có quản lý đang hoạt động' };
     }
 
     if (activeAssignment) {
-      return { success: false, message: 'You are already assigned to this property' };
+      return { success: false, message: 'Bạn đã được phân công cho tài sản này' };
     }
 
     if (pendingRequest) {
-      return { success: false, message: 'You already have a pending request for this property' };
+      return { success: false, message: 'Bạn đã có một yêu cầu đang chờ duyệt cho tài sản này' };
     }
 
     await prisma.managerAssignmentRequest.create({
@@ -244,7 +244,7 @@ export async function requestPropertyManagerAssignment(
       },
     });
 
-    return { success: true, message: 'Manager assignment request submitted' };
+    return { success: true, message: 'Đã gửi yêu cầu nhận quản lý' };
   } catch (error) {
     if (
       typeof error === 'object' &&
@@ -252,10 +252,10 @@ export async function requestPropertyManagerAssignment(
       'code' in error &&
       error.code === 'P2002'
     ) {
-      return { success: false, message: 'A pending manager assignment request already exists' };
+      return { success: false, message: 'Đã tồn tại yêu cầu phân công quản lý đang chờ duyệt' };
     }
 
-    return { success: false, ...normalizeActionError(error, 'Failed to submit manager assignment request') };
+    return { success: false, ...normalizeActionError(error, 'Không thể gửi yêu cầu phân công quản lý') };
   }
 }
 
@@ -317,7 +317,7 @@ export async function getManagerAssignmentState(): Promise<
       },
     };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to load manager assignment state') };
+    return { success: false, ...normalizeActionError(error, 'Không thể tải trạng thái phân công quản lý') };
   }
 }
 
@@ -365,7 +365,7 @@ export async function listManagerAssignmentRequests(): Promise<
       })),
     };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to load manager assignment requests') };
+    return { success: false, ...normalizeActionError(error, 'Không thể tải danh sách yêu cầu phân công quản lý') };
   }
 }
 
@@ -392,11 +392,11 @@ export async function approveManagerAssignmentRequest(
     });
 
     if (!request || request.status !== 'PENDING') {
-      return { success: false, message: 'Manager assignment request not found' };
+      return { success: false, message: 'Không tìm thấy yêu cầu phân công quản lý' };
     }
 
     if (request.property.ownerId !== parseId(session.userId)) {
-      return { success: false, message: 'Forbidden' };
+      return { success: false, message: 'Bạn không có quyền thực hiện thao tác này' };
     }
 
     const today = new Date();
@@ -479,7 +479,7 @@ export async function approveManagerAssignmentRequest(
           status: 'REJECTED',
           reviewedAt: reviewTime,
           reviewedById: parseId(session.userId),
-          rejectionNote: 'Automatically closed after another manager was assigned.',
+          rejectionNote: 'Tự động đóng vì một quản lý khác đã được phân công.',
         },
       });
 
@@ -494,21 +494,21 @@ export async function approveManagerAssignmentRequest(
       });
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
 
-    return { success: true, message: 'Manager assigned successfully' };
+    return { success: true, message: 'Đã phân công quản lý thành công' };
   } catch (error) {
     if (error instanceof Error && error.message === 'PROPERTY_ALREADY_ASSIGNED') {
-      return { success: false, message: 'This property already has an active manager' };
+      return { success: false, message: 'Tài sản này đã có quản lý đang hoạt động' };
     }
 
     if (error instanceof Error && error.message === 'MANAGER_ALREADY_ASSIGNED') {
-      return { success: false, message: 'Manager is already assigned to this property' };
+      return { success: false, message: 'Quản lý này đã được phân công cho tài sản này' };
     }
 
     if (error instanceof Error && error.message === 'REQUEST_NOT_PENDING') {
-      return { success: false, message: 'Manager assignment request is no longer available' };
+      return { success: false, message: 'Yêu cầu phân công quản lý không còn hiệu lực' };
     }
 
-    return { success: false, ...normalizeActionError(error, 'Failed to approve manager assignment request') };
+    return { success: false, ...normalizeActionError(error, 'Không thể duyệt yêu cầu phân công quản lý') };
   }
 }
 
@@ -534,11 +534,11 @@ export async function rejectManagerAssignmentRequest(
     });
 
     if (!request || request.status !== 'PENDING') {
-      return { success: false, message: 'Manager assignment request not found' };
+      return { success: false, message: 'Không tìm thấy yêu cầu phân công quản lý' };
     }
 
     if (request.property.ownerId !== parseId(session.userId)) {
-      return { success: false, message: 'Forbidden' };
+      return { success: false, message: 'Bạn không có quyền thực hiện thao tác này' };
     }
 
     await prisma.managerAssignmentRequest.update({
@@ -551,9 +551,9 @@ export async function rejectManagerAssignmentRequest(
       },
     });
 
-    return { success: true, message: 'Manager assignment request rejected' };
+    return { success: true, message: 'Đã từ chối yêu cầu phân công quản lý' };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to reject manager assignment request') };
+    return { success: false, ...normalizeActionError(error, 'Không thể từ chối yêu cầu phân công quản lý') };
   }
 }
 
@@ -581,11 +581,11 @@ export async function endManagerAssignmentByOwner(
     });
 
     if (!assignment || assignment.status !== 'ACTIVE') {
-      return { success: false, message: 'Active manager assignment not found' };
+      return { success: false, message: 'Không tìm thấy phân công quản lý đang hiệu lực' };
     }
 
     if (session.role === 'OWNER' && assignment.property.ownerId !== parseId(session.userId)) {
-      return { success: false, message: 'Forbidden' };
+      return { success: false, message: 'Bạn không có quyền thực hiện thao tác này' };
     }
 
     const endedAt = new Date();
@@ -598,9 +598,9 @@ export async function endManagerAssignmentByOwner(
       },
     });
 
-    return { success: true, message: 'Manager assignment ended' };
+    return { success: true, message: 'Đã kết thúc phân công quản lý' };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to end manager assignment') };
+    return { success: false, ...normalizeActionError(error, 'Không thể kết thúc phân công quản lý') };
   }
 }
 
@@ -629,7 +629,7 @@ export async function leaveManagedProperty(
     });
 
     if (!assignment) {
-      return { success: false, message: 'You are not actively assigned to this property' };
+      return { success: false, message: 'Bạn không có phân công quản lý đang hiệu lực tại tài sản này' };
     }
 
     await prisma.propertyManagerAssignment.update({
@@ -640,9 +640,9 @@ export async function leaveManagedProperty(
       },
     });
 
-    return { success: true, message: 'You have been removed from this property' };
+    return { success: true, message: 'Bạn đã rời khỏi tài sản này' };
   } catch (error) {
-    return { success: false, ...normalizeActionError(error, 'Failed to leave managed property') };
+    return { success: false, ...normalizeActionError(error, 'Không thể rời tài sản đang quản lý') };
   }
 }
 

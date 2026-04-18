@@ -166,7 +166,7 @@ export default function PropertyDetailPage() {
 
         {units.length === 0 ? (
           <div className="shell-card p-8 text-sm leading-6 text-brand-muted">
-            Tài sản này chưa có căn nào. Bạn có thể thêm căn đầu tiên để bắt đầu quản lý giá thuê và tình trạng lấp đầy.
+            Tài sản này chưa có căn nào. Bạn có thể thêm căn đầu tiên để bắt đầu quản lý giá thuê và trạng thái thuê.
           </div>
         ) : (
           <div className="grid gap-5 xl:grid-cols-2">

@@ -5,6 +5,13 @@ import { SharedSidebar } from './SharedSidebar';
 import { Role } from '@/features/auth/auth.types';
 import { Bell, MessageSquare, Search, Sparkles } from 'lucide-react';
 
+function roleText(role: Role) {
+  if (role === 'OWNER') return 'Chủ sở hữu';
+  if (role === 'MANAGER') return 'Quản gia';
+  if (role === 'TENANT') return 'Người thuê';
+  return 'Quản trị';
+}
+
 export default async function AppLayout({
   children,
   allowedRoles,
@@ -22,7 +29,6 @@ export default async function AppLayout({
       <SharedSidebar role={session.role} />
 
       <div className="min-w-0 flex-1">
-        {/* Simplified Header - Improved Simplicity */}
         <header className="sticky top-0 z-30 bg-[#F8F5EE]/85 backdrop-blur-xl">
           <div className="flex h-24 items-center justify-between gap-8 px-8 md:px-12">
             <div className="relative hidden w-full max-w-md items-center md:flex">
@@ -30,28 +36,28 @@ export default async function AppLayout({
               <input
                 aria-label="Tìm kiếm"
                 className="w-full rounded-2xl border border-brand-border/70 bg-white py-3.5 pl-11 pr-4 text-sm text-brand-ink outline-none transition-all focus:border-brand-primary focus:bg-white focus:ring-2 focus:ring-brand-primary/20 placeholder:text-brand-muted/70"
-                placeholder="Tìm bất động sản, hợp đồng..."
+                placeholder="Tìm tài sản, hợp đồng, hóa đơn..."
                 type="text"
               />
             </div>
 
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
-                <button className="flex h-12 w-12 items-center justify-center rounded-2xl text-brand-muted transition-colors hover:bg-brand-soft hover:text-brand-ink">
+                <button aria-label="Tin nhắn" className="flex h-12 w-12 items-center justify-center rounded-2xl text-brand-muted transition-colors hover:bg-brand-soft hover:text-brand-ink" title="Tin nhắn" type="button">
                   <MessageSquare className="h-5 w-5" />
                 </button>
-                <button className="flex h-12 w-12 items-center justify-center rounded-2xl text-brand-muted transition-colors hover:bg-brand-soft hover:text-brand-ink">
+                <button aria-label="Thông báo" className="flex h-12 w-12 items-center justify-center rounded-2xl text-brand-muted transition-colors hover:bg-brand-soft hover:text-brand-ink" title="Thông báo" type="button">
                   <Bell className="h-5 w-5" />
                 </button>
               </div>
-              
+
               <div className="h-8 w-px bg-brand-border/60" />
 
               <div className="flex items-center gap-4">
                 <div className="hidden text-right md:block">
                   <p className="text-sm font-bold text-brand-ink">{session.email}</p>
                   <p className="text-[10px] font-bold uppercase tracking-widest text-brand-primary-deep">
-                    {session.role}
+                    {roleText(session.role)}
                   </p>
                 </div>
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-primary-deep to-brand-primary text-white shadow-lg shadow-brand-primary/25">

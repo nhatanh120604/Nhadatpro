@@ -150,8 +150,8 @@ async function overdueInvoiceCandidates(session: AppSession): Promise<AlertCandi
     candidates.push({
       dedupeKey: `overdue-invoice-${invoice.id.toString()}`,
       alertType: 'OVERDUE_INVOICE',
-      title: `Hoa don ${invoice.invoiceCode} qua han`,
-      description: `${invoice.lease.tenant.fullName} con no hoa don tai ${invoice.lease.unit.property.propertyName} - can ${invoice.lease.unit.unitCode}.`,
+      title: `Hóa đơn ${invoice.invoiceCode} đã quá hạn`,
+      description: `${invoice.lease.tenant.fullName} vẫn còn công nợ tại ${invoice.lease.unit.property.propertyName}, căn ${invoice.lease.unit.unitCode}.`,
       alertDate: todayAtStart(),
       severity: 'HIGH',
       propertyId: invoice.lease.unit.property.id,
@@ -200,8 +200,8 @@ async function leaseExpiringCandidates(session: AppSession): Promise<AlertCandid
     candidates.push({
       dedupeKey: `lease-expiring-${lease.id.toString()}`,
       alertType: 'LEASE_EXPIRING',
-      title: `Hop dong sap het han`,
-      description: `${lease.tenant.fullName} - ${lease.unit.property.propertyName} can ${lease.unit.unitCode} het han ngay ${lease.endDate.toLocaleDateString('vi-VN')}.`,
+      title: 'Hợp đồng sắp hết hạn',
+      description: `Hợp đồng của ${lease.tenant.fullName} tại ${lease.unit.property.propertyName}, căn ${lease.unit.unitCode} sẽ hết hạn vào ngày ${lease.endDate.toLocaleDateString('vi-VN')}.`,
       alertDate: todayAtStart(),
       severity: 'MEDIUM',
       propertyId: lease.unit.property.id,
@@ -234,8 +234,8 @@ async function vacantUnitCandidates(session: AppSession): Promise<AlertCandidate
     candidates.push({
       dedupeKey: `vacant-unit-${unit.id.toString()}`,
       alertType: 'VACANT_UNIT',
-      title: `Can ${unit.unitCode} dang trong`,
-      description: `${unit.property.propertyName} - can ${unit.unitCode} da trong tu ${unit.vacantSince?.toLocaleDateString('vi-VN') ?? 'khong ro ngay'}.`,
+      title: `Căn ${unit.unitCode} đang trống`,
+      description: `${unit.property.propertyName} - căn ${unit.unitCode} đã trống từ ${unit.vacantSince?.toLocaleDateString('vi-VN') ?? 'không rõ ngày'}.`,
       alertDate: todayAtStart(),
       severity: 'MEDIUM',
       propertyId: unit.property.id,
@@ -279,8 +279,8 @@ async function pendingPaymentCandidates(session: AppSession): Promise<AlertCandi
     candidates.push({
       dedupeKey: `pending-payment-${payment.id.toString()}`,
       alertType: 'PENDING_PAYMENT_REVIEW',
-      title: `Thanh toan cho duyet`,
-      description: `${payment.invoice.lease.tenant.fullName} da gui chung tu cho hoa don ${payment.invoice.invoiceCode}.`,
+      title: 'Thanh toán chờ duyệt',
+      description: `${payment.invoice.lease.tenant.fullName} đã gửi chứng từ cho hóa đơn ${payment.invoice.invoiceCode}.`,
       alertDate: todayAtStart(),
       severity: 'HIGH',
       propertyId: payment.invoice.lease.unit.property.id,

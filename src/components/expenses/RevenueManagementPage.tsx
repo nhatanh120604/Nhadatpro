@@ -212,12 +212,12 @@ export default function RevenueManagementPage({ roleBase }: { roleBase: 'owner' 
   return (
     <div className="space-y-8">
       <section className="shell-card p-7 md:p-8">
-        <p className="warm-badge">{roleBase === 'owner' ? 'Doanh thu chủ nhà' : 'Doanh thu quản gia'}</p>
+        <p className="warm-badge">{roleBase === 'owner' ? 'Tài chính chủ nhà' : 'Tài chính quản gia'}</p>
         <div className="mt-5 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h1 className="font-headline text-5xl font-extrabold text-brand-ink">Báo cáo vận hành</h1>
+            <h1 className="font-headline text-5xl font-extrabold text-brand-ink">Tổng quan tài chính</h1>
             <p className="mt-3 max-w-2xl text-base leading-7 text-brand-muted">
-              Theo dõi doanh thu đã xác nhận, công nợ, chi phí và lợi nhuận vận hành theo tháng.
+              Theo dõi dòng tiền đã thu, công nợ, chi phí và lợi nhuận vận hành theo từng tháng.
             </p>
           </div>
           <button className="btn-secondary px-5 py-3.5 text-sm" disabled={busy === 'refresh'} onClick={handleRefresh} type="button">
@@ -289,7 +289,7 @@ export default function RevenueManagementPage({ roleBase }: { roleBase: 'owner' 
                     <span className="font-semibold text-brand-ink">{categoryText(category.category)}</span>
                     <span className="text-sm font-semibold text-brand-muted">{money(category.totalAmount)}</span>
                   </div>
-                )) : <p className="text-sm text-brand-muted">Chưa có chi phí trong tháng này.</p>}
+                )) : <p className="text-sm text-brand-muted">Chưa phát sinh chi phí trong tháng này.</p>}
               </div>
             </div>
           </section>
@@ -300,27 +300,27 @@ export default function RevenueManagementPage({ roleBase }: { roleBase: 'owner' 
         <form className="shell-card space-y-4 p-6" onSubmit={handleSubmitExpense}>
           <div>
             <p className="warm-badge">{editingExpenseId ? 'Cập nhật chi phí' : 'Ghi nhận chi phí'}</p>
-            <h2 className="mt-4 font-headline text-2xl font-bold text-brand-ink">{editingExpenseId ? 'Sửa chi phí' : 'Chi phí mới'}</h2>
+            <h2 className="mt-4 font-headline text-2xl font-bold text-brand-ink">{editingExpenseId ? 'Chỉnh sửa chi phí' : 'Thêm chi phí mới'}</h2>
           </div>
-          <select className="input-shell" onChange={(event) => setForm((current) => ({ ...current, propertyId: event.target.value }))} required value={form.propertyId}>
+          <select aria-label="Chọn tài sản" className="input-shell" onChange={(event) => setForm((current) => ({ ...current, propertyId: event.target.value }))} required title="Chọn tài sản" value={form.propertyId}>
             <option value="">Chọn tài sản</option>
             {properties.map((property) => (
               <option key={property.id} value={property.id}>{property.propertyName}</option>
             ))}
           </select>
-          <select className="input-shell" onChange={(event) => setForm((current) => ({ ...current, category: event.target.value as ExpenseCategory }))} value={form.category}>
+          <select aria-label="Chọn nhóm chi phí" className="input-shell" onChange={(event) => setForm((current) => ({ ...current, category: event.target.value as ExpenseCategory }))} title="Chọn nhóm chi phí" value={form.category}>
             {expenseCategories.map((category) => (
               <option key={category} value={category}>{categoryText(category)}</option>
             ))}
           </select>
-          <input className="input-shell" min="0" onChange={(event) => setForm((current) => ({ ...current, amount: event.target.value }))} placeholder="Số tiền" required type="number" value={form.amount} />
-          <input className="input-shell" onChange={(event) => setForm((current) => ({ ...current, expenseDate: event.target.value }))} required type="date" value={form.expenseDate} />
+          <input className="input-shell" min="0" onChange={(event) => setForm((current) => ({ ...current, amount: event.target.value }))} placeholder="Số tiền (VNĐ)" required type="number" value={form.amount} />
+          <input aria-label="Ngày chi phí" className="input-shell" onChange={(event) => setForm((current) => ({ ...current, expenseDate: event.target.value }))} required title="Ngày chi phí" type="date" value={form.expenseDate} />
           <input className="input-shell" onChange={(event) => setForm((current) => ({ ...current, vendorName: event.target.value }))} placeholder="Nhà cung cấp" value={form.vendorName} />
           <input className="input-shell" onChange={(event) => setForm((current) => ({ ...current, receiptUrl: event.target.value }))} placeholder="Link hóa đơn/chứng từ nếu có" value={form.receiptUrl} />
-          <textarea className="input-shell min-h-28" onChange={(event) => setForm((current) => ({ ...current, note: event.target.value }))} placeholder="Ghi chú" value={form.note} />
+          <textarea className="input-shell min-h-28" onChange={(event) => setForm((current) => ({ ...current, note: event.target.value }))} placeholder="Ghi chú nội dung chi phí" value={form.note} />
           <button className="btn-primary px-5 py-4 text-base" disabled={busy === 'create'} type="submit">
             <Plus className="h-4 w-4" />
-            <span>{busy === 'create' || busy === 'update' ? 'Đang lưu...' : editingExpenseId ? 'Cập nhật chi phí' : 'Thêm chi phí'}</span>
+            <span>{busy === 'create' || busy === 'update' ? 'Đang lưu...' : editingExpenseId ? 'Cập nhật chi phí' : 'Lưu chi phí'}</span>
           </button>
           {editingExpenseId ? (
             <button className="btn-secondary px-5 py-3.5 text-sm" onClick={clearEdit} type="button">
@@ -339,7 +339,7 @@ export default function RevenueManagementPage({ roleBase }: { roleBase: 'owner' 
                   <div>
                     <p className="font-semibold text-brand-ink">{categoryText(expense.category)} · {expense.propertyName}</p>
                     <p className="mt-2 text-sm text-brand-muted">
-                      {new Date(expense.expenseDate).toLocaleDateString('vi-VN')} · {expense.vendorName || 'Không có nhà cung cấp'} · {expense.status === 'VOIDED' ? 'Đã hủy' : 'Đang tính'}
+                      {new Date(expense.expenseDate).toLocaleDateString('vi-VN')} · {expense.vendorName || 'Không có nhà cung cấp'} · {expense.status === 'VOIDED' ? 'Đã hủy' : 'Đang ghi nhận'}
                     </p>
                     {expense.note ? <p className="mt-2 text-sm text-brand-muted">{expense.note}</p> : null}
                   </div>
@@ -360,7 +360,7 @@ export default function RevenueManagementPage({ roleBase }: { roleBase: 'owner' 
                   </div>
                 </div>
               </div>
-            )) : <p className="text-sm text-brand-muted">Chưa có chi phí trong bộ lọc này.</p>}
+            )) : <p className="text-sm text-brand-muted">Chưa có khoản chi phí nào theo bộ lọc hiện tại.</p>}
           </div>
         </section>
       </section>

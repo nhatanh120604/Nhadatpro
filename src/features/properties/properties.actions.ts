@@ -166,7 +166,7 @@ async function canAccessProperty(
 
 export async function getProperties(): Promise<ActionResponse<PropertyListItem[]>> {
   const session = await getSessionOrError();
-  if (!session) return { success: false, message: 'Unauthorized' };
+  if (!session) return { success: false, message: 'Phiên đăng nhập không hợp lệ' };
 
   try {
     await expirePastActiveLeases();
@@ -212,7 +212,7 @@ export async function getProperties(): Promise<ActionResponse<PropertyListItem[]
     };
   } catch (error) {
     console.error('getProperties error:', error);
-    return { success: false, message: 'Failed to fetch properties' };
+    return { success: false, message: 'Không thể tải danh sách tài sản' };
   }
 }
 
@@ -220,7 +220,7 @@ export async function getPropertyById(
   payload: GetPropertyByIdInput
 ): Promise<ActionResponse<PropertyListItem>> {
   const session = await getSessionOrError();
-  if (!session) return { success: false, message: 'Unauthorized' };
+  if (!session) return { success: false, message: 'Phiên đăng nhập không hợp lệ' };
 
   const parsed = getPropertyByIdSchema.safeParse(payload);
   if (!parsed.success) {
@@ -237,7 +237,7 @@ export async function getPropertyById(
 
     const hasAccess = await canAccessProperty(session, propertyId);
     if (!hasAccess) {
-      return { success: false, message: 'You do not have access to this property' };
+      return { success: false, message: 'Bạn không có quyền truy cập tài sản này' };
     }
 
     const property = await prisma.property.findUnique({
@@ -257,7 +257,7 @@ export async function getPropertyById(
     });
 
     if (!property) {
-      return { success: false, message: 'Property not found' };
+      return { success: false, message: 'Không tìm thấy tài sản' };
     }
 
     return {
@@ -269,7 +269,7 @@ export async function getPropertyById(
     };
   } catch (error) {
     console.error('getPropertyById error:', error);
-    return { success: false, message: 'Failed to fetch property' };
+    return { success: false, message: 'Không thể tải thông tin tài sản' };
   }
 }
 
@@ -277,7 +277,7 @@ export async function getOwnerPropertyManagementDetail(
   payload: GetPropertyByIdInput
 ): Promise<ActionResponse<OwnerPropertyManagementDetail>> {
   const session = await getSessionOrError();
-  if (!session) return { success: false, message: 'Unauthorized' };
+  if (!session) return { success: false, message: 'Phiên đăng nhập không hợp lệ' };
 
   const parsed = getPropertyByIdSchema.safeParse(payload);
   if (!parsed.success) {
@@ -285,7 +285,7 @@ export async function getOwnerPropertyManagementDetail(
   }
 
   if (session.role !== 'OWNER' && session.role !== 'ADMIN') {
-    return { success: false, message: 'Forbidden' };
+    return { success: false, message: 'Bạn không có quyền thực hiện thao tác này' };
   }
 
   try {
@@ -298,7 +298,7 @@ export async function getOwnerPropertyManagementDetail(
 
     const hasAccess = await canAccessProperty(session, propertyId);
     if (!hasAccess) {
-      return { success: false, message: 'You do not have access to this property' };
+      return { success: false, message: 'Bạn không có quyền truy cập tài sản này' };
     }
 
     const now = new Date();
@@ -409,7 +409,7 @@ export async function getOwnerPropertyManagementDetail(
     });
 
     if (!property) {
-      return { success: false, message: 'Property not found' };
+      return { success: false, message: 'Không tìm thấy tài sản' };
     }
 
     const activeManagers = property.assignments.map((assignment) => ({
@@ -484,7 +484,7 @@ export async function getOwnerPropertyManagementDetail(
             canGenerateTenantInvite,
             tenantInviteBlockedReason: canGenerateTenantInvite
               ? null
-              : 'This unit already has an active tenant lease. Terminate it before generating a new code.',
+              : 'Căn hộ này đang có hợp đồng thuê hiệu lực. Vui lòng kết thúc hợp đồng trước khi tạo mã mới.',
             canDelete: deleteBlockedReason === null,
             deleteBlockedReason,
           };
@@ -493,7 +493,7 @@ export async function getOwnerPropertyManagementDetail(
     };
   } catch (error) {
     console.error('getOwnerPropertyManagementDetail error:', error);
-    return { success: false, message: 'Failed to fetch property management detail' };
+    return { success: false, message: 'Không thể tải chi tiết quản lý tài sản' };
   }
 }
 
@@ -501,7 +501,7 @@ export async function createProperty(
   payload: CreatePropertyInput
 ): Promise<ActionResponse<{ propertyId: string }>> {
   const session = await getSessionOrError();
-  if (!session) return { success: false, message: 'Unauthorized' };
+  if (!session) return { success: false, message: 'Phiên đăng nhập không hợp lệ' };
 
   const parsed = createPropertySchema.safeParse(payload);
   if (!parsed.success) {
@@ -509,7 +509,7 @@ export async function createProperty(
   }
 
   if (session.role !== 'OWNER' && session.role !== 'ADMIN') {
-    return { success: false, message: 'Only owner or admin can create properties' };
+    return { success: false, message: 'Chỉ chủ nhà hoặc quản trị viên mới có thể tạo tài sản' };
   }
 
   try {
@@ -521,7 +521,7 @@ export async function createProperty(
     if (duplicate) {
       return {
         success: false,
-        errors: { propertyCode: ['Property code already exists'] },
+        errors: { propertyCode: ['Mã tài sản đã tồn tại'] },
       };
     }
 
@@ -545,12 +545,12 @@ export async function createProperty(
 
     return {
       success: true,
-      message: 'Property created successfully',
+      message: 'Đã tạo tài sản thành công',
       data: { propertyId: created.id.toString() },
     };
   } catch (error) {
     console.error('createProperty error:', error);
-    return { success: false, message: 'Failed to create property' };
+    return { success: false, message: 'Không thể tạo tài sản' };
   }
 }
 
@@ -558,7 +558,7 @@ export async function updateProperty(
   payload: UpdatePropertyInput
 ): Promise<ActionResponse<{ propertyId: string }>> {
   const session = await getSessionOrError();
-  if (!session) return { success: false, message: 'Unauthorized' };
+  if (!session) return { success: false, message: 'Phiên đăng nhập không hợp lệ' };
 
   const parsed = updatePropertySchema.safeParse(payload);
   if (!parsed.success) {
@@ -570,7 +570,7 @@ export async function updateProperty(
 
     const hasAccess = await canAccessProperty(session, propertyId);
     if (!hasAccess) {
-      return { success: false, message: 'You do not have access to update this property' };
+      return { success: false, message: 'Bạn không có quyền cập nhật tài sản này' };
     }
 
     const duplicate = await prisma.property.findFirst({
@@ -584,7 +584,7 @@ export async function updateProperty(
     if (duplicate) {
       return {
         success: false,
-        errors: { propertyCode: ['Property code already exists'] },
+        errors: { propertyCode: ['Mã tài sản đã tồn tại'] },
       };
     }
 
@@ -605,12 +605,12 @@ export async function updateProperty(
 
     return {
       success: true,
-      message: 'Property updated successfully',
+      message: 'Đã cập nhật tài sản thành công',
       data: { propertyId: updated.id.toString() },
     };
   } catch (error) {
     console.error('updateProperty error:', error);
-    return { success: false, message: 'Failed to update property' };
+    return { success: false, message: 'Không thể cập nhật tài sản' };
   }
 }
 
@@ -618,7 +618,7 @@ export async function deleteProperty(
   payload: DeletePropertyInput
 ): Promise<ActionResponse> {
   const session = await getSessionOrError();
-  if (!session) return { success: false, message: 'Unauthorized' };
+  if (!session) return { success: false, message: 'Phiên đăng nhập không hợp lệ' };
 
   const parsed = deletePropertySchema.safeParse(payload);
   if (!parsed.success) {
@@ -630,7 +630,7 @@ export async function deleteProperty(
 
     const hasAccess = await canAccessProperty(session, propertyId);
     if (!hasAccess) {
-      return { success: false, message: 'You do not have access to delete this property' };
+      return { success: false, message: 'Bạn không có quyền xóa tài sản này' };
     }
 
     const property = await prisma.property.findUnique({
@@ -661,7 +661,7 @@ export async function deleteProperty(
     });
 
     if (!property) {
-      return { success: false, message: 'Property not found' };
+      return { success: false, message: 'Không tìm thấy tài sản' };
     }
 
     const activeLeaseCount = await prisma.lease.count({
@@ -676,7 +676,7 @@ export async function deleteProperty(
     if (activeLeaseCount > 0) {
       return {
         success: false,
-        message: 'Terminate all active leases before removing this property.',
+        message: 'Vui lòng kết thúc tất cả hợp đồng đang hiệu lực trước khi xóa tài sản này.',
       };
     }
 
@@ -701,7 +701,7 @@ export async function deleteProperty(
         }),
         prisma.property.delete({ where: { id: propertyId } }),
       ]);
-      return { success: true, message: 'Property deleted successfully' };
+      return { success: true, message: 'Đã xóa tài sản thành công' };
     }
 
     const archivedAt = new Date();
@@ -726,7 +726,7 @@ export async function deleteProperty(
           status: 'REJECTED',
           reviewedAt: archivedAt,
           reviewedById: parseBigInt(session.userId),
-          rejectionNote: 'Automatically closed because the property was archived.',
+          rejectionNote: 'Tự động đóng do tài sản đã được lưu trữ.',
         },
       });
 
@@ -764,7 +764,7 @@ export async function deleteProperty(
           status: 'REJECTED',
           reviewedAt: archivedAt,
           reviewedById: parseBigInt(session.userId),
-          rejectionNote: 'Automatically closed because the property was archived.',
+          rejectionNote: 'Tự động đóng do tài sản đã được lưu trữ.',
         },
       });
 
@@ -789,9 +789,9 @@ export async function deleteProperty(
       });
     });
 
-    return { success: true, message: 'Property archived successfully' };
+    return { success: true, message: 'Đã lưu trữ tài sản thành công' };
   } catch (error) {
     console.error('deleteProperty error:', error);
-    return { success: false, message: 'Failed to delete property' };
+    return { success: false, message: 'Không thể xóa tài sản' };
   }
 }

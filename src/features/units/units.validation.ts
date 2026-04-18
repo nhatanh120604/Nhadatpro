@@ -9,7 +9,7 @@ const nullableDecimalInput = z
     return parsed;
   })
   .refine((value) => value === null || (!Number.isNaN(value) && value >= 0), {
-    message: 'Value must be a non-negative number',
+    message: 'Giá trị phải là số không âm',
   });
 
 export const createUnitSchema = z.object({
@@ -17,17 +17,17 @@ export const createUnitSchema = z.object({
     .string()
     .trim()
     .min(1, 'Property id is required')
-    .regex(/^\d+$/, 'Property id must be a numeric string'),
+    .regex(/^\d+$/, 'Mã tài sản phải là chuỗi số'),
   unitCode: z
     .string()
     .trim()
     .min(1, 'Unit code is required')
-    .max(50, 'Unit code must be at most 50 characters')
+    .max(50, 'Mã căn hộ tối đa 50 ký tự')
     .transform((value) => value.toUpperCase()),
   unitName: z
     .string()
     .trim()
-    .max(255, 'Unit name must be at most 255 characters')
+    .max(255, 'Tên căn hộ tối đa 255 ký tự')
     .optional()
     .or(z.literal('')),
   floorNumber: z.coerce.number().int().optional(),
@@ -37,7 +37,7 @@ export const createUnitSchema = z.object({
   furnishingStatus: z
     .string()
     .trim()
-    .max(50, 'Furnishing status must be at most 50 characters')
+    .max(50, 'Tình trạng nội thất tối đa 50 ký tự')
     .optional()
     .or(z.literal('')),
   defaultMonthlyRent: nullableDecimalInput,
@@ -49,7 +49,7 @@ export const updateUnitSchema = createUnitSchema.extend({
     .string()
     .trim()
     .min(1, 'Unit id is required')
-    .regex(/^\d+$/, 'Unit id must be a numeric string'),
+    .regex(/^\d+$/, 'Mã căn hộ phải là chuỗi số'),
 });
 
 export const deleteUnitSchema = z.object({
@@ -57,7 +57,7 @@ export const deleteUnitSchema = z.object({
     .string()
     .trim()
     .min(1, 'Unit id is required')
-    .regex(/^\d+$/, 'Unit id must be a numeric string'),
+    .regex(/^\d+$/, 'Mã căn hộ phải là chuỗi số'),
 });
 
 export const getUnitsByPropertyIdSchema = z.object({
@@ -65,7 +65,7 @@ export const getUnitsByPropertyIdSchema = z.object({
     .string()
     .trim()
     .min(1, 'Property id is required')
-    .regex(/^\d+$/, 'Property id must be a numeric string'),
+    .regex(/^\d+$/, 'Mã tài sản phải là chuỗi số'),
 });
 
 export const getUnitByIdSchema = z.object({
@@ -73,12 +73,12 @@ export const getUnitByIdSchema = z.object({
     .string()
     .trim()
     .min(1, 'Property id is required')
-    .regex(/^\d+$/, 'Property id must be a numeric string'),
+    .regex(/^\d+$/, 'Mã tài sản phải là chuỗi số'),
   unitId: z
     .string()
     .trim()
     .min(1, 'Unit id is required')
-    .regex(/^\d+$/, 'Unit id must be a numeric string'),
+    .regex(/^\d+$/, 'Mã căn hộ phải là chuỗi số'),
 });
 
 export type CreateUnitInput = z.infer<typeof createUnitSchema>;

@@ -7,40 +7,40 @@ export const propertyBaseSchema = z.object({
     .string()
     .trim()
     .min(1, 'Property code is required')
-    .max(50, 'Property code must be at most 50 characters')
+    .max(50, 'Mã tài sản tối đa 50 ký tự')
     .transform((value) => value.toUpperCase()),
   propertyName: z
     .string()
     .trim()
     .min(1, 'Property name is required')
-    .max(255, 'Property name must be at most 255 characters'),
+    .max(255, 'Tên tài sản tối đa 255 ký tự'),
   addressLine: z
     .string()
     .trim()
     .min(1, 'Address is required')
-    .max(255, 'Address must be at most 255 characters'),
+    .max(255, 'Địa chỉ tối đa 255 ký tự'),
   ward: z
     .string()
     .trim()
-    .max(100, 'Ward must be at most 100 characters')
+    .max(100, 'Phường/xã tối đa 100 ký tự')
     .optional()
     .or(z.literal('')),
   district: z
     .string()
     .trim()
-    .max(100, 'District must be at most 100 characters')
+    .max(100, 'Quận/huyện tối đa 100 ký tự')
     .optional()
     .or(z.literal('')),
   city: z
     .string()
     .trim()
-    .max(100, 'City must be at most 100 characters')
+    .max(100, 'Tỉnh/thành phố tối đa 100 ký tự')
     .optional()
     .or(z.literal('')),
   propertyType: z
     .string()
     .trim()
-    .max(50, 'Property type must be at most 50 characters')
+    .max(50, 'Loại tài sản tối đa 50 ký tự')
     .optional()
     .or(z.literal('')),
   status: propertyStatusSchema.default('ACTIVE'),
@@ -53,7 +53,7 @@ export const updatePropertySchema = propertyBaseSchema.extend({
     .string()
     .trim()
     .min(1, 'Property id is required')
-    .regex(/^\d+$/, 'Property id must be a numeric string'),
+    .regex(/^\d+$/, 'Mã tài sản phải là chuỗi số'),
 });
 
 export const deletePropertySchema = z.object({
@@ -61,7 +61,7 @@ export const deletePropertySchema = z.object({
     .string()
     .trim()
     .min(1, 'Property id is required')
-    .regex(/^\d+$/, 'Property id must be a numeric string'),
+    .regex(/^\d+$/, 'Mã tài sản phải là chuỗi số'),
 });
 
 export const getPropertyByIdSchema = z.object({
@@ -69,7 +69,7 @@ export const getPropertyByIdSchema = z.object({
     .string()
     .trim()
     .min(1, 'Property id is required')
-    .regex(/^\d+$/, 'Property id must be a numeric string'),
+    .regex(/^\d+$/, 'Mã tài sản phải là chuỗi số'),
 });
 
 export type CreatePropertyInput = z.infer<typeof createPropertySchema>;

@@ -4,12 +4,12 @@ const idSchema = z
   .string()
   .trim()
   .min(1, 'Id is required')
-  .regex(/^\d+$/, 'Id must be a numeric string');
+  .regex(/^\d+$/, 'ID phải là chuỗi số');
 
 const optionalTextSchema = z
   .string()
   .trim()
-  .max(1000, 'Text must be at most 1000 characters')
+  .max(1000, 'Nội dung tối đa 1000 ký tự')
   .optional()
   .or(z.literal(''));
 

@@ -35,7 +35,7 @@ const ownerMenu: SidebarItem[] = [
   { title: 'Bảng điều khiển', href: '/owner/dashboard', icon: LayoutGrid },
   { title: 'Tài sản', href: '/owner/properties', icon: Building2 },
   { title: 'Yêu cầu', href: '/owner/requests', icon: ClipboardList },
-  { title: 'Doanh thu', href: '/owner/revenue', icon: PiggyBank },
+  { title: 'Tài chính', href: '/owner/revenue', icon: PiggyBank },
   { title: 'Thu tiền', href: '/owner/invoices', icon: Wallet },
   { title: 'Thông báo', href: '/owner/notifications', icon: Bell },
 ];
@@ -45,7 +45,7 @@ const managerMenu: SidebarItem[] = [
   { title: 'Tài sản được giao', href: '/manager/properties', icon: Building2 },
   { title: 'Yêu cầu xử lý', href: '/manager/requests', icon: ClipboardList },
   { title: 'Thu tiền', href: '/manager/invoices', icon: Wallet },
-  { title: 'Doanh thu', href: '/manager/revenue', icon: PiggyBank },
+  { title: 'Tài chính', href: '/manager/revenue', icon: PiggyBank },
   { title: 'Thông báo', href: '/manager/notifications', icon: Bell },
 ];
 
@@ -82,18 +82,16 @@ export function SharedSidebar({
 
   return (
     <aside className="hidden h-screen w-[300px] flex-col border-r border-brand-border/60 bg-[#F8F5EE] px-6 py-8 md:flex">
-      {/* Brand Section - Name changed to Dia Oc Hub  */}
       <div className="mb-10 flex items-center gap-4 px-2">
         <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-primary text-white shadow-xl shadow-brand-primary/20">
           <Building2 className="h-6 w-6" />
         </div>
         <div>
-          <p className="font-headline text-2xl font-black tracking-tight text-brand-ink">Dia Oc Hub</p>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-muted">Nền tảng quản lý tài sản</p>
+          <p className="font-headline text-2xl font-black tracking-tight text-brand-ink">Nha Dat Pro</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-muted">Nền tảng quản lý bất động sản</p>
         </div>
       </div>
 
-      {/* Navigation - Improved Spacing for White Space score  */}
       <nav className="flex-1 space-y-2 overflow-y-auto pr-1">
         {menuItems.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -115,18 +113,16 @@ export function SharedSidebar({
         })}
       </nav>
 
-      {/* Primary Action [cite: 6] */}
       <div className="mt-auto space-y-5 pt-6">
         <Link className="btn-primary flex w-full items-center justify-center gap-2 rounded-2xl py-4 font-bold shadow-lg shadow-brand-primary/20" href={primaryAction.href}>
           <Sparkles className="h-4 w-4" />
           <span>{primaryAction.label}</span>
         </Link>
 
-        {/* Support Links */}
         <div className="space-y-1">
           <button className="flex w-full items-center gap-3 rounded-xl px-4 py-2 text-sm font-semibold text-brand-muted transition-colors hover:bg-white hover:text-brand-ink">
             <ShieldCheck className="h-4 w-4" />
-            <span>Hỗ trợ hệ thống</span>
+            <span>Trợ giúp hệ thống</span>
           </button>
         </div>
 
