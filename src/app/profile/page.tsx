@@ -63,7 +63,7 @@ export default async function ProfilePage() {
                 </button>
               </div>
 
-              <h2 className="text-xl font-black text-brand-ink truncate max-w-full px-4">{user.fullName}</h2>
+              <h2 className="text-xl font-black text-brand-ink break-words smax-w-full px-4">{user.fullName}</h2>
               <p className="text-xs font-bold text-brand-muted mt-1 truncate w-full">{user.email || session.email}</p>
               
               <div className="mt-5 warm-badge">

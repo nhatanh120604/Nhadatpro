@@ -1,5 +1,5 @@
-import RevenueManagementPage from '@/components/expenses/RevenueManagementPage';
+import { redirect } from 'next/navigation';
 
 export default function ManagerRevenuePage() {
-  return <RevenueManagementPage roleBase="manager" />;
+  redirect('/manager/finance');
 }

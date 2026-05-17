@@ -3,25 +3,17 @@
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { ArrowLeft, KeyRound, ShieldCheck, Trash2, UserRound, XCircle } from 'lucide-react';
+import { ArrowLeft, ShieldCheck, Trash2, UserRound, UserPlus } from 'lucide-react';
 import {
   executeLeaseTermination,
-  generateUnitInviteCode,
-  revokeUnitInviteCode,
+  inviteUnitTenantByPhone,
 } from '@/features/leases/leases.actions';
 import {
   endManagerAssignmentByOwner,
-  generatePropertyManagerInviteCode,
-  revokePropertyManagerInviteCode,
+  inviteManagerByPhone,
 } from '@/features/managerAssignments/managerAssignments.actions';
 import { getOwnerPropertyManagementDetail } from '@/features/properties/properties.actions';
 import { deleteUnit } from '@/features/units/units.actions';
-
-type InviteData = {
-  inviteCode: string;
-  expiresAt: string;
-  isMasked?: boolean;
-};
 
 type PropertyManagerSummary = {
   assignmentId: string;
@@ -86,29 +78,6 @@ function formatDate(value: string) {
   return new Date(value).toLocaleDateString('vi-VN');
 }
 
-function formatDateTime(value: string) {
-  return new Date(value).toLocaleString('vi-VN');
-}
-
-function formatInvite(
-  persisted: { hasCode: boolean; expiresAt: string | null },
-  generated: InviteData | null
-) {
-  if (generated) {
-    return generated;
-  }
-
-  if (!persisted.hasCode || !persisted.expiresAt) {
-    return null;
-  }
-
-  return {
-    inviteCode: 'Mã chỉ hiển thị ngay sau khi tạo',
-    expiresAt: persisted.expiresAt,
-    isMasked: true,
-  };
-}
-
 function localizeUnitMessage(message: string | null) {
   if (!message) return null;
 
@@ -137,11 +106,11 @@ function StatChip({ label, value }: { label: string; value: string }) {
 export default function OwnerPropertyDetailPage() {
   const { id } = useParams() as { id: string };
   const [property, setProperty] = useState<PropertyManagementDetail | null>(null);
-  const [managerInvite, setManagerInvite] = useState<InviteData | null>(null);
-  const [unitInvites, setUnitInvites] = useState<Record<string, InviteData>>({});
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [managerPhone, setManagerPhone] = useState('');
+  const [unitPhones, setUnitPhones] = useState<Record<string, string>>({});
 
   const loadProperty = async () => {
     const response = await getOwnerPropertyManagementDetail({ propertyId: id });
@@ -182,22 +151,6 @@ export default function OwnerPropertyDetailPage() {
     };
   }, [id]);
 
-  const handleGenerateManagerCode = async () => {
-    setBusyKey('manager-generate');
-    setError('');
-    const response = await generatePropertyManagerInviteCode({ propertyId: id });
-
-    if (!response.success || !response.data) {
-      setError(response.message || 'Không thể tạo mã mời quản gia');
-      setBusyKey(null);
-      return;
-    }
-
-    setManagerInvite(response.data);
-    await loadProperty();
-    setBusyKey(null);
-  };
-
   const handleEndManagerAssignment = async (assignmentId: string, fullName: string) => {
     const confirmed = window.confirm(
       `Ngừng phân công ${fullName} khỏi tài sản này? Lịch sử làm việc vẫn sẽ được giữ lại để báo cáo.`
@@ -216,61 +169,6 @@ export default function OwnerPropertyDetailPage() {
       return;
     }
 
-    await loadProperty();
-    setBusyKey(null);
-  };
-
-  const handleRevokeManagerCode = async () => {
-    setBusyKey('manager-revoke');
-    setError('');
-    const response = await revokePropertyManagerInviteCode({ propertyId: id });
-
-    if (!response.success) {
-      setError(response.message || 'Không thể thu hồi mã mời quản gia');
-      setBusyKey(null);
-      return;
-    }
-
-    setManagerInvite(null);
-    await loadProperty();
-    setBusyKey(null);
-  };
-
-  const handleGenerateUnitCode = async (unitId: string) => {
-    setBusyKey(`unit-generate-${unitId}`);
-    setError('');
-    const response = await generateUnitInviteCode({ unitId });
-
-    if (!response.success || !response.data) {
-      setError(response.message || 'Không thể tạo mã mời người thuê');
-      setBusyKey(null);
-      return;
-    }
-
-    setUnitInvites((current) => ({
-      ...current,
-      [unitId]: response.data!,
-    }));
-    await loadProperty();
-    setBusyKey(null);
-  };
-
-  const handleRevokeUnitCode = async (unitId: string) => {
-    setBusyKey(`unit-revoke-${unitId}`);
-    setError('');
-    const response = await revokeUnitInviteCode({ unitId });
-
-    if (!response.success) {
-      setError(response.message || 'Không thể thu hồi mã mời người thuê');
-      setBusyKey(null);
-      return;
-    }
-
-    setUnitInvites((current) => {
-      const next = { ...current };
-      delete next[unitId];
-      return next;
-    });
     await loadProperty();
     setBusyKey(null);
   };
@@ -294,7 +192,37 @@ export default function OwnerPropertyDetailPage() {
       return;
     }
 
-    setUnitInvites((current) => {
+    await loadProperty();
+    setBusyKey(null);
+  };
+
+  const handleInviteManagerByPhone = async () => {
+    if (!managerPhone.trim()) return;
+    setBusyKey('manager-phone-invite');
+    setError('');
+    const response = await inviteManagerByPhone({ propertyId: id, phone: managerPhone.trim() });
+    if (!response.success) {
+      setError(response.message || 'Không thể mời quản gia');
+      setBusyKey(null);
+      return;
+    }
+    setManagerPhone('');
+    await loadProperty();
+    setBusyKey(null);
+  };
+
+  const handleInviteTenantByPhone = async (unitId: string) => {
+    const phone = unitPhones[unitId]?.trim();
+    if (!phone) return;
+    setBusyKey(`unit-phone-invite-${unitId}`);
+    setError('');
+    const response = await inviteUnitTenantByPhone({ unitId, phone });
+    if (!response.success) {
+      setError(response.message || 'Không thể mời người thuê');
+      setBusyKey(null);
+      return;
+    }
+    setUnitPhones((current) => {
       const next = { ...current };
       delete next[unitId];
       return next;
@@ -332,14 +260,6 @@ export default function OwnerPropertyDetailPage() {
       </div>
     );
   }
-
-  const displayedManagerInvite = formatInvite(
-    {
-      hasCode: property.hasActiveManagerInviteCode,
-      expiresAt: property.activeManagerInviteExpiresAt,
-    },
-    managerInvite
-  );
 
   return (
     <div className="space-y-8">
@@ -419,29 +339,16 @@ export default function OwnerPropertyDetailPage() {
         <div className="shell-card p-6 md:p-7">
           <div className="flex items-start gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-brand-primary-deep">
-              <KeyRound className="h-5 w-5" />
+              <UserPlus className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brand-primary-deep">Mã mời quản gia</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brand-primary-deep">Mời quản gia</p>
               <h2 className="mt-2 font-headline text-2xl font-bold text-brand-ink">Kết nối người quản lý</h2>
               <p className="mt-2 text-sm leading-6 text-brand-muted">
-                Chia sẻ mã cấp tài sản để quản gia gửi yêu cầu nhận quản lý. Sau khi duyệt, mã sẽ không nên tiếp tục sử dụng.
+                Nhập số điện thoại quản gia đã đăng ký để mời họ trực tiếp phụ trách tài sản này.
               </p>
             </div>
           </div>
-
-          {displayedManagerInvite ? (
-            <div className="mt-5 rounded-3xl border border-amber-200 bg-amber-50/90 p-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brand-primary-deep">Mã đang hiệu lực</p>
-              <p className="mt-3 text-2xl font-black tracking-[0.18em] text-brand-ink">{displayedManagerInvite.inviteCode}</p>
-              <p className="mt-2 text-sm text-brand-muted">Hết hạn lúc {formatDateTime(displayedManagerInvite.expiresAt)}</p>
-              {displayedManagerInvite.isMasked ? (
-                <p className="mt-3 text-xs leading-5 text-brand-muted">
-                  Vì lý do bảo mật, mã gốc chỉ hiển thị ngay sau khi tạo. Hãy tạo lại nếu bạn cần gửi một mã mới cho quản gia.
-                </p>
-              ) : null}
-            </div>
-          ) : null}
 
           {!property.canGenerateManagerInvite && property.managerInviteBlockedReason ? (
             <div className="shell-muted mt-5 rounded-3xl px-5 py-4 text-sm leading-6 text-brand-muted">
@@ -449,30 +356,28 @@ export default function OwnerPropertyDetailPage() {
             </div>
           ) : null}
 
-          <div className="mt-5 flex flex-wrap gap-3">
-            {property.canGenerateManagerInvite ? (
-              <button
-                className="btn-primary px-4 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-60"
-                disabled={busyKey === 'manager-generate'}
-                onClick={() => void handleGenerateManagerCode()}
-                type="button"
-              >
-                <span>{displayedManagerInvite ? 'Tạo lại mã quản gia' : 'Tạo mã quản gia'}</span>
-              </button>
-            ) : null}
-
-            {displayedManagerInvite ? (
-              <button
-                className="btn-secondary px-4 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-60"
-                disabled={busyKey === 'manager-revoke'}
-                onClick={() => void handleRevokeManagerCode()}
-                type="button"
-              >
-                <XCircle className="h-4 w-4" />
-                <span>Thu hồi mã</span>
-              </button>
-            ) : null}
-          </div>
+          {property.canGenerateManagerInvite ? (
+            <div className="mt-5">
+              <p className="mb-3 text-sm text-brand-muted">Mời qua số điện thoại:</p>
+              <div className="flex gap-3">
+                <input
+                  className="input-shell flex-1"
+                  onChange={(e) => setManagerPhone(e.target.value)}
+                  placeholder="Số điện thoại quản gia"
+                  type="tel"
+                  value={managerPhone}
+                />
+                <button
+                  className="btn-primary px-4 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={!managerPhone.trim() || busyKey === 'manager-phone-invite'}
+                  onClick={() => void handleInviteManagerByPhone()}
+                  type="button"
+                >
+                  Mời
+                </button>
+              </div>
+            </div>
+          ) : null}
         </div>
       </section>
 
@@ -480,26 +385,19 @@ export default function OwnerPropertyDetailPage() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brand-primary-deep">Danh sách căn</p>
-            <h2 className="mt-2 font-headline text-3xl font-bold text-brand-ink">Quản lý hợp đồng và mã thuê</h2>
+            <h2 className="mt-2 font-headline text-3xl font-bold text-brand-ink">Quản lý hợp đồng và người thuê</h2>
           </div>
           <span className="text-sm text-brand-muted">{property.units.length} căn</span>
         </div>
 
         {property.units.length === 0 ? (
           <div className="shell-card p-6 text-sm leading-6 text-brand-muted">
-            Chưa có căn nào trong tài sản này. Hãy thêm căn trước khi tạo mã kết nối người thuê.
+            Chưa có căn nào trong tài sản này. Hãy thêm căn trước khi mời người thuê.
           </div>
         ) : (
           <div className="grid gap-5 2xl:grid-cols-2">
             {property.units.map((unit) => {
               const activeLease = unit.activeLease;
-              const displayedInvite = formatInvite(
-                {
-                  hasCode: unit.hasActiveInviteCode,
-                  expiresAt: unit.activeInviteExpiresAt,
-                },
-                unitInvites[unit.id] ?? null
-              );
 
               return (
                 <article className="shell-card p-6" key={unit.id}>
@@ -530,28 +428,6 @@ export default function OwnerPropertyDetailPage() {
                         <span>Chỉnh sửa căn</span>
                       </Link>
                       <button
-                        className="btn-primary px-4 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-60"
-                        disabled={!unit.canGenerateTenantInvite || busyKey === `unit-generate-${unit.id}`}
-                        onClick={() => void handleGenerateUnitCode(unit.id)}
-                        title={unit.tenantInviteBlockedReason || undefined}
-                        type="button"
-                      >
-                        <span>{displayedInvite ? 'Tạo lại mã thuê' : 'Tạo mã thuê'}</span>
-                      </button>
-
-                      {displayedInvite ? (
-                        <button
-                          className="btn-secondary px-4 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-60"
-                          disabled={busyKey === `unit-revoke-${unit.id}`}
-                          onClick={() => void handleRevokeUnitCode(unit.id)}
-                          type="button"
-                        >
-                          <XCircle className="h-4 w-4" />
-                          <span>Thu hồi mã</span>
-                        </button>
-                      ) : null}
-
-                      <button
                         className="inline-flex items-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
                         disabled={!unit.canDelete || busyKey === `unit-delete-${unit.id}`}
                         onClick={() => void handleDeleteUnit(unit.id, unit.unitName || unit.unitCode)}
@@ -570,6 +446,31 @@ export default function OwnerPropertyDetailPage() {
                     </div>
                   ) : null}
 
+                  {unit.canGenerateTenantInvite ? (
+                    <div className="mt-5">
+                      <p className="mb-3 text-sm text-brand-muted">Mời người thuê qua số điện thoại:</p>
+                      <div className="flex gap-3">
+                        <input
+                          className="input-shell flex-1"
+                          onChange={(e) =>
+                            setUnitPhones((current) => ({ ...current, [unit.id]: e.target.value }))
+                          }
+                          placeholder="Số điện thoại người thuê"
+                          type="tel"
+                          value={unitPhones[unit.id] ?? ''}
+                        />
+                        <button
+                          className="btn-primary px-4 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+                          disabled={!unitPhones[unit.id]?.trim() || busyKey === `unit-phone-invite-${unit.id}`}
+                          onClick={() => void handleInviteTenantByPhone(unit.id)}
+                          type="button"
+                        >
+                          Mời
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
+
                   {!unit.canDelete && unit.deleteBlockedReason ? (
                     <div className="shell-muted mt-4 rounded-3xl px-5 py-4 text-sm leading-6 text-brand-muted">
                       {localizeUnitMessage(unit.deleteBlockedReason)}
@@ -579,19 +480,6 @@ export default function OwnerPropertyDetailPage() {
                   {unit.hasOperationalHistory && unit.canDelete ? (
                     <div className="shell-muted mt-4 rounded-3xl px-5 py-4 text-sm leading-6 text-brand-muted">
                       Căn này sẽ được lưu trữ khỏi vận hành hằng ngày, nhưng lịch sử hợp đồng và tài chính vẫn được giữ lại để phục vụ báo cáo sau này.
-                    </div>
-                  ) : null}
-
-                  {displayedInvite ? (
-                    <div className="mt-5 rounded-3xl border border-amber-200 bg-amber-50/90 p-5">
-                      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brand-primary-deep">Mã mời người thuê</p>
-                      <p className="mt-3 text-2xl font-black tracking-[0.18em] text-brand-ink">{displayedInvite.inviteCode}</p>
-                      <p className="mt-2 text-sm text-brand-muted">Hết hạn lúc {formatDateTime(displayedInvite.expiresAt)}</p>
-                      {displayedInvite.isMasked ? (
-                        <p className="mt-3 text-xs leading-5 text-brand-muted">
-                          Mã gốc chỉ hiển thị ở thời điểm tạo. Nếu cần gửi lại cho người thuê, hãy tạo một mã mới.
-                        </p>
-                      ) : null}
                     </div>
                   ) : null}
 

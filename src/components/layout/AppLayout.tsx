@@ -3,8 +3,9 @@ import { getSession } from '@/lib/session';
 import { redirect } from 'next/navigation';
 import { SharedSidebar } from './SharedSidebar';
 import { Role } from '@/features/auth/auth.types';
-import { Bell, MessageSquare, Search } from 'lucide-react';
-import { ProfileDropdown } from './ProfileDropdown'; 
+import { Search } from 'lucide-react';
+import { ProfileDropdown } from './ProfileDropdown';
+import NotificationBell from './NotificationBell';
 
 function roleText(role: Role) {
   if (role === 'OWNER') return 'Chủ sở hữu';
@@ -44,12 +45,7 @@ export default async function AppLayout({
 
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
-                <button aria-label="Tin nhắn" className="flex h-12 w-12 items-center justify-center rounded-2xl text-brand-muted transition-colors hover:bg-brand-soft hover:text-brand-ink" title="Tin nhắn" type="button">
-                  <MessageSquare className="h-5 w-5" />
-                </button>
-                <button aria-label="Thông báo" className="flex h-12 w-12 items-center justify-center rounded-2xl text-brand-muted transition-colors hover:bg-brand-soft hover:text-brand-ink" title="Thông báo" type="button">
-                  <Bell className="h-5 w-5" />
-                </button>
+                <NotificationBell role={session.role} />
               </div>
 
               <div className="h-8 w-px bg-brand-border/60" />

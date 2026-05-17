@@ -38,6 +38,7 @@ export type AlertListItem = {
   readAt: string | null;
   propertyName: string | null;
   unitCode: string | null;
+  invoiceId: string | null;
   invoiceCode: string | null;
   createdAt: string;
   resolvedAt: string | null;
@@ -71,7 +72,7 @@ export async function listMyAlerts(
           include: {
             property: { select: { propertyName: true } },
             unit: { select: { unitCode: true } },
-            invoice: { select: { invoiceCode: true } },
+            invoice: { select: { id: true, invoiceCode: true } },
           },
         },
       },
@@ -97,6 +98,7 @@ export async function listMyAlerts(
         readAt: row.readAt?.toISOString() ?? null,
         propertyName: row.alert.property?.propertyName ?? null,
         unitCode: row.alert.unit?.unitCode ?? null,
+        invoiceId: row.alert.invoice?.id?.toString() ?? null,
         invoiceCode: row.alert.invoice?.invoiceCode ?? null,
         createdAt: row.alert.createdAt.toISOString(),
         resolvedAt: row.alert.resolvedAt?.toISOString() ?? null,

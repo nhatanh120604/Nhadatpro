@@ -391,6 +391,16 @@ export async function recalculateInvoiceStatusAfterPayment(
   return status;
 }
 
+function parseDueDateOverride(value: string | undefined | null) {
+  if (!value) return null;
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return null;
+  const [, yearStr, monthStr, dayStr] = match;
+  const date = new Date(Number(yearStr), Number(monthStr) - 1, Number(dayStr));
+  if (Number.isNaN(date.getTime())) return null;
+  return date;
+}
+
 async function createInvoiceFromLease(
   tx: Prisma.TransactionClient,
   lease: {
@@ -402,7 +412,8 @@ async function createInvoiceFromLease(
   billingYear: number,
   billingMonth: number,
   utilityAmount: number,
-  otherFeeAmount: number
+  otherFeeAmount: number,
+  dueDateOverride?: string | null
 ) {
   const rentAmount = lease.baseRent;
   const managementFeeAmount = lease.managementFee;
@@ -410,6 +421,8 @@ async function createInvoiceFromLease(
   const other = decimal(otherFeeAmount);
   const penalty = decimal(0);
   const totalAmount = rentAmount.plus(managementFeeAmount).plus(utility).plus(other).plus(penalty);
+  const dueDate =
+    parseDueDateOverride(dueDateOverride) ?? dueDateForMonth(billingYear, billingMonth, lease.dueDayOfMonth);
 
   return tx.invoice.create({
     data: {
@@ -423,7 +436,7 @@ async function createInvoiceFromLease(
       penaltyAmount: penalty,
       otherFeeAmount: other,
       totalAmount,
-      dueDate: dueDateForMonth(billingYear, billingMonth, lease.dueDayOfMonth),
+      dueDate,
       status: 'UNPAID',
     },
     select: { id: true },
@@ -559,7 +572,8 @@ export async function createMonthlyInvoices(
           parsed.data.billingYear,
           parsed.data.billingMonth,
           item.utilityAmount,
-          item.otherFeeAmount
+          item.otherFeeAmount,
+          item.dueDate || null
         );
         createdCount += 1;
       }
@@ -630,7 +644,8 @@ export async function createSingleInvoice(
         parsed.data.billingYear,
         parsed.data.billingMonth,
         parsed.data.utilityAmount,
-        parsed.data.otherFeeAmount
+        parsed.data.otherFeeAmount,
+        parsed.data.dueDate || null
       );
     });
 
@@ -935,7 +950,22 @@ export async function verifyPayment(payload: PaymentReviewInput): Promise<Action
           include: {
             lease: {
               include: {
-                unit: { select: { propertyId: true } },
+                tenant: { select: { id: true, fullName: true } },
+                unit: {
+                  include: {
+                    property: {
+                      select: {
+                        id: true,
+                        propertyName: true,
+                        ownerId: true,
+                        assignments: {
+                          where: { status: 'ACTIVE' },
+                          select: { managerId: true },
+                        },
+                      },
+                    },
+                  },
+                },
               },
             },
           },
@@ -949,6 +979,19 @@ export async function verifyPayment(payload: PaymentReviewInput): Promise<Action
 
     await assertPropertyAccess(session, payment.invoice.lease.unit.propertyId);
 
+    const property = payment.invoice.lease.unit.property;
+    const recipientIds = Array.from(
+      new Set(
+        [
+          property.ownerId,
+          ...property.assignments.map((assignment) => assignment.managerId),
+          payment.invoice.lease.tenant.id,
+        ]
+          .filter((id): id is bigint => Boolean(id))
+          .map((id) => id.toString())
+      )
+    ).map((id) => BigInt(id));
+
     await prisma.$transaction(async (tx) => {
       await tx.payment.update({
         where: { id: payment.id },
@@ -960,6 +1003,43 @@ export async function verifyPayment(payload: PaymentReviewInput): Promise<Action
         },
       });
       await recalculateInvoiceStatusAfterPayment(payment.invoiceId, tx);
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const verifiedAlert = await tx.alert.upsert({
+        where: { dedupeKey: `payment-verified-${payment.id.toString()}` },
+        create: {
+          dedupeKey: `payment-verified-${payment.id.toString()}`,
+          alertType: 'PAYMENT_VERIFIED',
+          title: 'Thanh toán đã duyệt',
+          description: `Đã xác nhận thanh toán ${Number(payment.paidAmount).toLocaleString('vi-VN')} VNĐ của ${payment.invoice.lease.tenant.fullName} cho hóa đơn ${payment.invoice.invoiceCode}.`,
+          alertDate: today,
+          severity: 'LOW',
+          status: 'OPEN',
+          propertyId: property.id,
+          unitId: payment.invoice.lease.unit.id,
+          leaseId: payment.invoice.lease.id,
+          invoiceId: payment.invoice.id,
+        },
+        update: {
+          title: 'Thanh toán đã duyệt',
+          description: `Đã xác nhận thanh toán ${Number(payment.paidAmount).toLocaleString('vi-VN')} VNĐ của ${payment.invoice.lease.tenant.fullName} cho hóa đơn ${payment.invoice.invoiceCode}.`,
+          status: 'OPEN',
+          resolvedAt: null,
+        },
+        select: { id: true },
+      });
+
+      if (recipientIds.length > 0) {
+        await tx.alertRecipient.createMany({
+          data: recipientIds.map((userId) => ({
+            alertId: verifiedAlert.id,
+            userId,
+            notifiedAt: new Date(),
+          })),
+          skipDuplicates: true,
+        });
+      }
     });
 
     return { success: true, message: 'Đã xác nhận thanh toán' };

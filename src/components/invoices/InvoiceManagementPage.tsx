@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, Eye, FilePlus2, QrCode, RefreshCw, XCircle } from 'lucide-react';
@@ -16,10 +16,10 @@ import {
   verifyPayment,
   type InvoiceListItem,
   type InvoicePreviewItem,
-  type InvoiceSummary,
   type PaymentReceivingAccountData,
   type PaymentReviewItem,
 } from '@/features/invoices/invoices.actions';
+import Drawer from '@/components/ui/Drawer';
 
 type PropertyOption = {
   id: string;
@@ -55,15 +55,6 @@ function currentBillingMonth() {
   };
 }
 
-function StatTile({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="stat-tile">
-      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-muted">{label}</p>
-      <p className="mt-3 font-headline text-3xl font-extrabold text-brand-ink">{value}</p>
-    </div>
-  );
-}
-
 export default function InvoiceManagementPage({ roleBase }: { roleBase: 'owner' | 'manager' }) {
   const initial = useMemo(() => currentBillingMonth(), []);
   const [billingYear, setBillingYear] = useState(String(initial.year));
@@ -72,11 +63,11 @@ export default function InvoiceManagementPage({ roleBase }: { roleBase: 'owner' 
   const [propertyId, setPropertyId] = useState('');
   const [properties, setProperties] = useState<PropertyOption[]>([]);
   const [invoices, setInvoices] = useState<InvoiceListItem[]>([]);
-  const [summary, setSummary] = useState<InvoiceSummary | null>(null);
   const [previews, setPreviews] = useState<InvoicePreviewItem[]>([]);
   const [pendingPayments, setPendingPayments] = useState<PaymentReviewItem[]>([]);
   const [utilityAmounts, setUtilityAmounts] = useState<Record<string, string>>({});
   const [otherAmounts, setOtherAmounts] = useState<Record<string, string>>({});
+  const [dueDateOverrides, setDueDateOverrides] = useState<Record<string, string>>({});
   const [account, setAccount] = useState<PaymentReceivingAccountData | null>(null);
   const [accountForm, setAccountForm] = useState({
     bankCode: '',
@@ -89,6 +80,15 @@ export default function InvoiceManagementPage({ roleBase }: { roleBase: 'owner' 
   const [busy, setBusy] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [createOpen, setCreateOpen] = useState(false);
+
+  const pendingByInvoice = useMemo(() => {
+    const map: Record<string, PaymentReviewItem> = {};
+    for (const payment of pendingPayments) {
+      map[payment.invoiceId] = payment;
+    }
+    return map;
+  }, [pendingPayments]);
 
   const loadInvoices = useCallback(async () => {
     const response = await listScopedInvoices({
@@ -100,7 +100,6 @@ export default function InvoiceManagementPage({ roleBase }: { roleBase: 'owner' 
 
     if (response.success && response.data) {
       setInvoices(response.data.invoices);
-      setSummary(response.data.summary);
     } else {
       setError(response.message || 'Không thể tải hóa đơn');
     }
@@ -191,6 +190,13 @@ export default function InvoiceManagementPage({ roleBase }: { roleBase: 'owner' 
     setBusy('');
   };
 
+  const handleOpenCreate = async () => {
+    setCreateOpen(true);
+    if (previews.length === 0) {
+      await handlePreview();
+    }
+  };
+
   const handleCreateMonthly = async () => {
     const rows = previews.filter((preview) => !preview.existingInvoiceId);
     if (rows.length === 0) {
@@ -210,6 +216,7 @@ export default function InvoiceManagementPage({ roleBase }: { roleBase: 'owner' 
         leaseId: row.leaseId,
         utilityAmount: Number(utilityAmounts[row.leaseId] || 0),
         otherFeeAmount: Number(otherAmounts[row.leaseId] || 0),
+        dueDate: dueDateOverrides[row.leaseId] || '',
       })),
     });
 
@@ -233,6 +240,7 @@ export default function InvoiceManagementPage({ roleBase }: { roleBase: 'owner' 
       billingMonth: Number(billingMonth),
       utilityAmount: Number(utilityAmounts[row.leaseId] || 0),
       otherFeeAmount: Number(otherAmounts[row.leaseId] || 0),
+      dueDate: dueDateOverrides[row.leaseId] || '',
     });
 
     if (response.success) {
@@ -310,27 +318,26 @@ export default function InvoiceManagementPage({ roleBase }: { roleBase: 'owner' 
   const canEditAccount = roleBase === 'owner';
 
   return (
-    <div className="space-y-8">
-      <section className="shell-card p-7 md:p-8">
-        <p className="warm-badge">Thu tiền nhà</p>
-        <h1 className="mt-5 font-headline text-5xl font-extrabold text-brand-ink">Hóa đơn và thanh toán</h1>
-        <p className="mt-4 max-w-3xl text-lg leading-8 text-brand-muted">
-          Tạo hóa đơn từ hợp đồng đang hiệu lực, hướng dẫn người thuê chuyển khoản VietQR và duyệt chứng từ thanh toán.
-        </p>
-      </section>
-
+    <div className="space-y-6">
       {error ? <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div> : null}
       {message ? <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">{message}</div> : null}
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <StatTile label="Tổng hóa đơn" value={money(summary?.totalInvoiced || '0')} />
-        <StatTile label="Đã xác nhận" value={money(summary?.totalPaid || '0')} />
-        <StatTile label="Còn phải thu" value={money(summary?.totalRemaining || '0')} />
-        <StatTile label="Chờ duyệt / Quá hạn" value={`${summary?.pendingReviewCount || 0} / ${summary?.overdueCount || 0}`} />
-      </section>
+      <section className="shell-card space-y-4 p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-headline text-xl font-bold text-brand-ink">Hóa đơn</h2>
+          <div className="flex flex-wrap gap-2">
+            <button className="btn-primary px-4 py-2.5 text-sm" onClick={() => void handleOpenCreate()} type="button">
+              <FilePlus2 className="h-4 w-4" />
+              Tạo hóa đơn tháng
+            </button>
+            <button className="btn-secondary px-4 py-2.5 text-sm" disabled={busy === 'refresh'} onClick={() => void handleRefresh()} type="button">
+              <RefreshCw className="h-4 w-4" />
+              Làm mới
+            </button>
+          </div>
+        </div>
 
-      <section className="shell-card space-y-5 p-6">
-        <div className="grid gap-4 md:grid-cols-5">
+        <div className="grid gap-3 md:grid-cols-4">
           <input className="input-shell" onChange={(event) => setBillingYear(event.target.value)} type="number" value={billingYear} />
           <select className="input-shell" onChange={(event) => setBillingMonth(event.target.value)} value={billingMonth}>
             {Array.from({ length: 12 }, (_, index) => index + 1).map((month) => (
@@ -351,18 +358,14 @@ export default function InvoiceManagementPage({ roleBase }: { roleBase: 'owner' 
             <option value="PAID">Đã thanh toán</option>
             <option value="OVERDUE">Quá hạn</option>
           </select>
-          <button className="btn-primary px-4 py-3 text-sm" disabled={busy === 'refresh'} onClick={() => void handleRefresh()} type="button">
-            <RefreshCw className="h-4 w-4" />
-            Lọc dữ liệu
-          </button>
         </div>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-        <form className="shell-card space-y-4 p-6" onSubmit={handleSaveAccount}>
+      <section className="shell-card p-6">
+        <form className="space-y-4" onSubmit={handleSaveAccount}>
           <div className="flex items-center gap-3">
             <QrCode className="h-5 w-5 text-brand-primary-deep" />
-            <h2 className="font-headline text-2xl font-bold text-brand-ink">Tài khoản nhận tiền</h2>
+            <h2 className="font-headline text-xl font-bold text-brand-ink">Tài khoản nhận tiền</h2>
           </div>
           {!propertyId ? <p className="text-sm text-brand-muted">Chọn một tài sản cụ thể ở bộ lọc để xem hoặc cấu hình tài khoản nhận tiền.</p> : null}
           {propertyId && !canEditAccount ? (
@@ -389,29 +392,132 @@ export default function InvoiceManagementPage({ roleBase }: { roleBase: 'owner' 
             </>
           ) : null}
         </form>
+      </section>
 
-        <section className="shell-card space-y-5 p-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="font-headline text-2xl font-bold text-brand-ink">Tạo hóa đơn tháng</h2>
-            <button className="btn-secondary px-4 py-3 text-sm" disabled={busy === 'preview'} onClick={() => void handlePreview()} type="button">
-              Xem trước hợp đồng
-            </button>
+      <section className="shell-card space-y-4 p-6">
+        <h2 className="font-headline text-xl font-bold text-brand-ink">Danh sách hóa đơn</h2>
+        {invoices.length === 0 ? (
+          <p className="text-sm text-brand-muted">Chưa có hóa đơn nào trong bộ lọc hiện tại.</p>
+        ) : (
+          <div className="space-y-3">
+            {invoices.map((invoice) => {
+              const pending = pendingByInvoice[invoice.invoiceId];
+              return (
+                <article className="shell-muted p-4" key={invoice.invoiceId}>
+                  <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr] xl:items-center">
+                    <div>
+                      <p className="font-semibold text-brand-ink">{invoice.invoiceCode}</p>
+                      <p className="mt-1 text-sm text-brand-muted">{invoice.propertyName} · {invoice.unitCode} · {invoice.tenantName}</p>
+                    </div>
+                    <div className="text-sm text-brand-muted">
+                      <p>Tháng {invoice.billingMonth}/{invoice.billingYear}</p>
+                      <p>Hạn {new Date(invoice.dueDate).toLocaleDateString('vi-VN')}</p>
+                    </div>
+                    <div className="text-sm text-brand-muted">
+                      <p>Tổng {money(invoice.totalAmount)}</p>
+                      <p>Đã xác nhận {money(invoice.verifiedPaidTotal)}</p>
+                    </div>
+                    <div>
+                      <span className="warm-badge">{statusText(invoice.status)}</span>
+                      <p className="mt-2 text-sm text-brand-muted">Còn lại {money(invoice.remainingBalance)}</p>
+                    </div>
+                  </div>
+
+                  {pending ? (
+                    <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3">
+                      <div className="min-w-0 text-sm">
+                        <p className="font-semibold text-brand-ink">
+                          Chứng từ chờ duyệt · {money(pending.paidAmount)}
+                        </p>
+                        <p className="mt-0.5 text-xs text-brand-muted">
+                          {pending.payerName} · {new Date(pending.submittedAt).toLocaleString('vi-VN')}
+                          {pending.transferReference ? ` · ${pending.transferReference}` : ''}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <button className="btn-secondary px-3 py-1.5 text-xs" onClick={() => void handleOpenProof(pending.paymentId)} type="button">
+                          <Eye className="h-3.5 w-3.5" />
+                          Xem
+                        </button>
+                        <button className="btn-primary px-3 py-1.5 text-xs" disabled={busy === `verify-${pending.paymentId}`} onClick={() => void handleVerify(pending.paymentId)} type="button">
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          Xác nhận
+                        </button>
+                        <button className="btn-secondary px-3 py-1.5 text-xs text-red-700" disabled={busy === `reject-${pending.paymentId}`} onClick={() => void handleReject(pending.paymentId)} type="button">
+                          <XCircle className="h-3.5 w-3.5" />
+                          Từ chối
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
+                </article>
+              );
+            })}
           </div>
+        )}
+      </section>
+
+      <Drawer onClose={() => setCreateOpen(false)} open={createOpen} title={`Tạo hóa đơn tháng ${billingMonth}/${billingYear}`} width="w-[760px]">
+        <div className="space-y-4">
+          <button className="btn-secondary px-4 py-2.5 text-sm" disabled={busy === 'preview'} onClick={() => void handlePreview()} type="button">
+            <RefreshCw className="h-4 w-4" />
+            Xem trước hợp đồng
+          </button>
           {previews.length === 0 ? (
-            <p className="text-sm text-brand-muted">Chọn tháng rồi xem trước để tạo hóa đơn từ các hợp đồng đang hiệu lực.</p>
+            <p className="text-sm text-brand-muted">{busy === 'preview' ? 'Đang tải...' : 'Bấm "Xem trước hợp đồng" để liệt kê các hợp đồng đang hiệu lực.'}</p>
           ) : (
             <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-3 rounded-xl bg-brand-soft/60 p-3 text-xs text-brand-muted">
+                <span className="font-semibold text-brand-ink">Đặt ngày đến hạn cho tất cả:</span>
+                <input
+                  className="input-shell bg-white py-2 text-sm"
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    setDueDateOverrides((current) => {
+                      const next: Record<string, string> = { ...current };
+                      for (const preview of previews) {
+                        if (!preview.existingInvoiceId) next[preview.leaseId] = value;
+                      }
+                      return next;
+                    });
+                  }}
+                  type="date"
+                  value={(() => {
+                    const editable = previews.filter((preview) => !preview.existingInvoiceId);
+                    if (editable.length === 0) return '';
+                    const first = dueDateOverrides[editable[0].leaseId] ?? '';
+                    return editable.every((preview) => (dueDateOverrides[preview.leaseId] ?? '') === first)
+                      ? first
+                      : '';
+                  })()}
+                />
+                <button
+                  className="text-xs font-semibold text-brand-primary hover:text-brand-primary-deep"
+                  onClick={() => setDueDateOverrides({})}
+                  type="button"
+                >
+                  Dùng mặc định theo hợp đồng
+                </button>
+              </div>
               {previews.map((row) => (
-                <div className="shell-muted grid gap-3 p-4 xl:grid-cols-[1.4fr_0.8fr_0.8fr_0.7fr] xl:items-center" key={row.leaseId}>
+                <div className="shell-muted grid gap-3 p-4 md:grid-cols-[1.4fr_0.8fr_0.8fr_0.9fr_0.6fr] md:items-center" key={row.leaseId}>
                   <div>
                     <p className="font-semibold text-brand-ink">{row.propertyName} · {row.unitCode}</p>
-                    <p className="mt-1 text-sm text-brand-muted">{row.tenantName} · Hạn {new Date(row.dueDate).toLocaleDateString('vi-VN')}</p>
+                    <p className="mt-1 text-sm text-brand-muted">{row.tenantName} · Mặc định {new Date(row.dueDate).toLocaleDateString('vi-VN')}</p>
                     <p className="mt-1 text-sm text-brand-muted">Tiền thuê {money(row.rentAmount)} · Phí quản lý {money(row.managementFeeAmount)}</p>
                     {row.existingInvoiceId ? <p className="mt-2 text-xs font-semibold text-brand-primary-deep">Đã có hóa đơn tháng này</p> : null}
                   </div>
                   <input className="input-shell bg-white" disabled={Boolean(row.existingInvoiceId)} onChange={(event) => setUtilityAmounts((current) => ({ ...current, [row.leaseId]: event.target.value }))} placeholder="Tiện ích" type="number" value={utilityAmounts[row.leaseId] || ''} />
                   <input className="input-shell bg-white" disabled={Boolean(row.existingInvoiceId)} onChange={(event) => setOtherAmounts((current) => ({ ...current, [row.leaseId]: event.target.value }))} placeholder="Phí khác" type="number" value={otherAmounts[row.leaseId] || ''} />
-                  <button className="btn-secondary px-4 py-3 text-sm" disabled={Boolean(row.existingInvoiceId) || busy === `single-${row.leaseId}`} onClick={() => void handleCreateSingle(row)} type="button">
+                  <input
+                    className="input-shell bg-white"
+                    disabled={Boolean(row.existingInvoiceId)}
+                    onChange={(event) => setDueDateOverrides((current) => ({ ...current, [row.leaseId]: event.target.value }))}
+                    title="Ngày đến hạn (để trống dùng mặc định)"
+                    type="date"
+                    value={dueDateOverrides[row.leaseId] || ''}
+                  />
+                  <button className="btn-secondary px-3 py-2 text-xs" disabled={Boolean(row.existingInvoiceId) || busy === `single-${row.leaseId}`} onClick={() => void handleCreateSingle(row)} type="button">
                     Tạo riêng
                   </button>
                 </div>
@@ -422,75 +528,8 @@ export default function InvoiceManagementPage({ roleBase }: { roleBase: 'owner' 
               </button>
             </div>
           )}
-        </section>
-      </section>
-
-      <section className="shell-card space-y-4 p-6">
-        <h2 className="font-headline text-2xl font-bold text-brand-ink">Chứng từ chờ duyệt</h2>
-        {pendingPayments.length === 0 ? (
-          <p className="text-sm text-brand-muted">Hiện chưa có chứng từ thanh toán nào đang chờ duyệt.</p>
-        ) : (
-          <div className="space-y-3">
-            {pendingPayments.map((payment) => (
-              <article className="shell-muted p-4" key={payment.paymentId}>
-                <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-                  <div>
-                    <p className="font-semibold text-brand-ink">{payment.invoiceCode} · {payment.propertyName} · {payment.unitCode}</p>
-                    <p className="mt-1 text-sm text-brand-muted">{payment.payerName} · {money(payment.paidAmount)} · {new Date(payment.submittedAt).toLocaleString('vi-VN')}</p>
-                    <p className="mt-1 text-sm text-brand-muted">{payment.transferReference || 'Chưa có mã giao dịch'}</p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <button className="btn-secondary px-4 py-2 text-sm" onClick={() => void handleOpenProof(payment.paymentId)} type="button">
-                      <Eye className="h-4 w-4" />
-                      Xem chứng từ
-                    </button>
-                    <button className="btn-primary px-4 py-2 text-sm" disabled={busy === `verify-${payment.paymentId}`} onClick={() => void handleVerify(payment.paymentId)} type="button">
-                      <CheckCircle2 className="h-4 w-4" />
-                      Xác nhận
-                    </button>
-                    <button className="btn-secondary px-4 py-2 text-sm text-red-700" disabled={busy === `reject-${payment.paymentId}`} onClick={() => void handleReject(payment.paymentId)} type="button">
-                      <XCircle className="h-4 w-4" />
-                      Từ chối
-                    </button>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section className="shell-card space-y-4 p-6">
-        <h2 className="font-headline text-2xl font-bold text-brand-ink">Danh sách hóa đơn</h2>
-        {invoices.length === 0 ? (
-          <p className="text-sm text-brand-muted">Chưa có hóa đơn nào trong bộ lọc hiện tại.</p>
-        ) : (
-          <div className="space-y-3">
-            {invoices.map((invoice) => (
-              <article className="shell-muted p-4" key={invoice.invoiceId}>
-                <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr_0.8fr_0.8fr] xl:items-center">
-                  <div>
-                    <p className="font-semibold text-brand-ink">{invoice.invoiceCode}</p>
-                    <p className="mt-1 text-sm text-brand-muted">{invoice.propertyName} · {invoice.unitCode} · {invoice.tenantName}</p>
-                  </div>
-                  <div className="text-sm text-brand-muted">
-                    <p>Tháng {invoice.billingMonth}/{invoice.billingYear}</p>
-                    <p>Hạn {new Date(invoice.dueDate).toLocaleDateString('vi-VN')}</p>
-                  </div>
-                  <div className="text-sm text-brand-muted">
-                    <p>Tổng {money(invoice.totalAmount)}</p>
-                    <p>Đã xác nhận {money(invoice.verifiedPaidTotal)}</p>
-                  </div>
-                  <div>
-                    <span className="warm-badge">{statusText(invoice.status)}</span>
-                    <p className="mt-2 text-sm text-brand-muted">Còn lại {money(invoice.remainingBalance)}</p>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
-      </section>
+        </div>
+      </Drawer>
     </div>
   );
 }
