@@ -22,6 +22,13 @@ export const billingMonthSchema = z.object({
   propertyId: idSchema.optional().or(z.literal('')),
 });
 
+const dueDateSchema = z
+  .string()
+  .trim()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Ngày đến hạn phải có dạng YYYY-MM-DD')
+  .optional()
+  .or(z.literal(''));
+
 export const createMonthlyInvoicesSchema = z.object({
   billingYear: z.coerce.number().int().min(2000).max(2100),
   billingMonth: z.coerce.number().int().min(1).max(12),
@@ -32,6 +39,7 @@ export const createMonthlyInvoicesSchema = z.object({
         leaseId: idSchema,
         utilityAmount: moneySchema.default(0),
         otherFeeAmount: moneySchema.default(0),
+        dueDate: dueDateSchema,
       })
     )
     .min(1, 'Cần ít nhất một hóa đơn'),
@@ -43,6 +51,7 @@ export const createSingleInvoiceSchema = z.object({
   billingMonth: z.coerce.number().int().min(1).max(12),
   utilityAmount: moneySchema.default(0),
   otherFeeAmount: moneySchema.default(0),
+  dueDate: dueDateSchema,
 });
 
 export const listInvoicesSchema = z.object({

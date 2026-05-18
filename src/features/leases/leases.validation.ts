@@ -63,6 +63,11 @@ export const executeLeaseTerminationSchema = z.object({
   leaseId: idSchema,
 });
 
+export const inviteUnitTenantByPhoneSchema = z.object({
+  unitId: idSchema,
+  phone: z.string().trim().min(1, 'Số điện thoại là bắt buộc').max(20),
+});
+
 export type UnitInviteInput = z.infer<typeof unitInviteSchema>;
 export type RequestUnitConnectionInput = z.infer<typeof requestUnitConnectionSchema>;
 export type RejectConnectionRequestInput = z.infer<typeof rejectConnectionRequestSchema>;
@@ -72,3 +77,4 @@ export type ApproveUnitConnectionAndCreateLeaseInput = z.infer<
 >;
 export type RequestEarlyTerminationInput = z.infer<typeof requestEarlyTerminationSchema>;
 export type ExecuteLeaseTerminationInput = z.infer<typeof executeLeaseTerminationSchema>;
+export type InviteUnitTenantByPhoneInput = z.infer<typeof inviteUnitTenantByPhoneSchema>;

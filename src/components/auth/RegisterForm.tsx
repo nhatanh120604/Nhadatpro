@@ -74,7 +74,7 @@ export function RegisterForm({ role, googleAuthEnabled = true }: RegisterFormPro
       <div className="mx-auto max-w-2xl shell-card p-6 md:p-10">
         <div className="mb-8 flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-brand-primary-deep">Nha Dat Pro</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-brand-primary-deep">Địa Ốc Hub</p>
             <h1 className="mt-3 font-headline text-4xl font-extrabold text-brand-ink">{title}</h1>
             <p className="mt-3 max-w-xl text-base leading-7 text-brand-muted">{subtitle}</p>
           </div>

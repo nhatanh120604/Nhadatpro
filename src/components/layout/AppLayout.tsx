@@ -3,7 +3,9 @@ import { getSession } from '@/lib/session';
 import { redirect } from 'next/navigation';
 import { SharedSidebar } from './SharedSidebar';
 import { Role } from '@/features/auth/auth.types';
-import { Bell, MessageSquare, Search, Sparkles } from 'lucide-react';
+import { Search } from 'lucide-react';
+import { ProfileDropdown } from './ProfileDropdown';
+import NotificationBell from './NotificationBell';
 
 function roleText(role: Role) {
   if (role === 'OWNER') return 'Chủ sở hữu';
@@ -43,27 +45,16 @@ export default async function AppLayout({
 
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
-                <button aria-label="Tin nhắn" className="flex h-12 w-12 items-center justify-center rounded-2xl text-brand-muted transition-colors hover:bg-brand-soft hover:text-brand-ink" title="Tin nhắn" type="button">
-                  <MessageSquare className="h-5 w-5" />
-                </button>
-                <button aria-label="Thông báo" className="flex h-12 w-12 items-center justify-center rounded-2xl text-brand-muted transition-colors hover:bg-brand-soft hover:text-brand-ink" title="Thông báo" type="button">
-                  <Bell className="h-5 w-5" />
-                </button>
+                <NotificationBell role={session.role} />
               </div>
 
               <div className="h-8 w-px bg-brand-border/60" />
 
-              <div className="flex items-center gap-4">
-                <div className="hidden text-right md:block">
-                  <p className="text-sm font-bold text-brand-ink">{session.email}</p>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-brand-primary-deep">
-                    {roleText(session.role)}
-                  </p>
-                </div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-primary-deep to-brand-primary text-white shadow-lg shadow-brand-primary/25">
-                  <Sparkles className="h-5 w-5" />
-                </div>
-              </div>
+              <ProfileDropdown 
+                name={session.name} 
+                roleLabel={roleText(session.role)} 
+              />
+              
             </div>
           </div>
         </header>

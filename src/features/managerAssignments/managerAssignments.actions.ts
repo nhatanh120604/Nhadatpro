@@ -11,11 +11,13 @@ import {
 } from '@/lib/authz';
 import { generateInviteCode, getInviteExpiryDate, hashInviteCode } from '@/lib/invite-codes';
 import {
+  inviteManagerByPhoneSchema,
   managerAssignmentRequestDecisionSchema,
   managerLeavePropertySchema,
   ownerEndManagerAssignmentSchema,
   propertyInviteSchema,
   requestPropertyManagerAssignmentSchema,
+  type InviteManagerByPhoneInput,
   type ManagerAssignmentRequestDecisionInput,
   type ManagerLeavePropertyInput,
   type OwnerEndManagerAssignmentInput,
@@ -601,6 +603,59 @@ export async function endManagerAssignmentByOwner(
     return { success: true, message: 'Đã kết thúc phân công quản lý' };
   } catch (error) {
     return { success: false, ...normalizeActionError(error, 'Không thể kết thúc phân công quản lý') };
+  }
+}
+
+export async function inviteManagerByPhone(
+  payload: InviteManagerByPhoneInput
+): Promise<ActionResponse> {
+  const parsed = inviteManagerByPhoneSchema.safeParse(payload);
+  if (!parsed.success) {
+    return { success: false, errors: parsed.error.flatten().fieldErrors };
+  }
+
+  try {
+    const session = await requireRole(['OWNER', 'ADMIN']);
+    const propertyId = parseId(parsed.data.propertyId);
+    await assertPropertyOwner(session, propertyId);
+
+    const user = await prisma.user.findUnique({
+      where: { phone: parsed.data.phone },
+      select: { id: true, fullName: true, role: { select: { name: true } } },
+    });
+
+    if (!user) {
+      return { success: false, message: 'Không tìm thấy người dùng với số điện thoại này' };
+    }
+
+    if (user.role.name !== 'MANAGER') {
+      return { success: false, message: 'Số điện thoại này không thuộc về một quản gia' };
+    }
+
+    const activeAssignment = await prisma.propertyManagerAssignment.findFirst({
+      where: { propertyId, status: 'ACTIVE' },
+      select: { id: true },
+    });
+
+    if (activeAssignment) {
+      return { success: false, message: 'Tài sản này đã có quản gia đang phụ trách' };
+    }
+
+    await prisma.propertyManagerAssignment.create({
+      data: {
+        propertyId,
+        managerId: user.id,
+        startDate: new Date(),
+        salaryType: 'FIXED_MONTHLY',
+        baseSalary: 0,
+        commissionRate: 0,
+        status: 'ACTIVE',
+      },
+    });
+
+    return { success: true, message: `Đã mời ${user.fullName} làm quản gia` };
+  } catch (error) {
+    return { success: false, ...normalizeActionError(error, 'Không thể mời quản gia') };
   }
 }
 

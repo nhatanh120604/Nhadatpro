@@ -1,5 +1,5 @@
-import InvoiceManagementPage from '@/components/invoices/InvoiceManagementPage';
+import { redirect } from 'next/navigation';
 
 export default function OwnerInvoicesPage() {
-  return <InvoiceManagementPage roleBase="owner" />;
+  redirect('/owner/finance');
 }

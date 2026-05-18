@@ -17,6 +17,7 @@ import {
   approveUnitConnectionAndCreateLeaseSchema,
   executeLeaseTerminationSchema,
   getConnectionRequestSchema,
+  inviteUnitTenantByPhoneSchema,
   rejectConnectionRequestSchema,
   requestEarlyTerminationSchema,
   requestUnitConnectionSchema,
@@ -24,6 +25,7 @@ import {
   type ApproveUnitConnectionAndCreateLeaseInput,
   type ExecuteLeaseTerminationInput,
   type GetConnectionRequestInput,
+  type InviteUnitTenantByPhoneInput,
   type RejectConnectionRequestInput,
   type RequestEarlyTerminationInput,
   type RequestUnitConnectionInput,
@@ -914,6 +916,91 @@ export async function listLeaseTerminationRequests(): Promise<
     };
   } catch (error) {
     return { success: false, ...normalizeActionError(error, 'Không thể tải danh sách yêu cầu chấm dứt hợp đồng') };
+  }
+}
+
+export async function inviteUnitTenantByPhone(
+  payload: InviteUnitTenantByPhoneInput
+): Promise<ActionResponse> {
+  const parsed = inviteUnitTenantByPhoneSchema.safeParse(payload);
+  if (!parsed.success) {
+    return { success: false, errors: parsed.error.flatten().fieldErrors };
+  }
+
+  try {
+    const session = await requireRole(['OWNER', 'ADMIN']);
+    const unitId = parseId(parsed.data.unitId);
+    const unit = await getUnitWithProperty(unitId);
+
+    if (!unit) {
+      return { success: false, message: 'Không tìm thấy căn hộ' };
+    }
+
+    await assertPropertyOwner(session, unit.propertyId);
+
+    const tenant = await prisma.user.findUnique({
+      where: { phone: parsed.data.phone },
+      select: { id: true, fullName: true, role: { select: { name: true } } },
+    });
+
+    if (!tenant) {
+      return { success: false, message: 'Không tìm thấy người dùng với số điện thoại này' };
+    }
+
+    if (tenant.role.name !== 'TENANT') {
+      return { success: false, message: 'Số điện thoại này không thuộc về một người thuê' };
+    }
+
+    await expirePastActiveLeases({ OR: [{ tenantId: tenant.id }, { unitId }] });
+
+    const [activeUnitLease, existingPending] = await Promise.all([
+      prisma.lease.findFirst({ where: { unitId, status: 'ACTIVE' }, select: { id: true } }),
+      prisma.unitConnectionRequest.findFirst({
+        where: { unitId, tenantId: tenant.id, status: 'PENDING' },
+        select: { id: true },
+      }),
+    ]);
+
+    if (activeUnitLease) {
+      return { success: false, message: 'Căn hộ này đã có hợp đồng thuê đang hiệu lực' };
+    }
+
+    if (existingPending) {
+      return { success: false, message: 'Người thuê này đã có một yêu cầu kết nối đang chờ duyệt' };
+    }
+
+    const inviteCode = generateInviteCode(`UNIT${unit.unitCode.toUpperCase()}`);
+    const expiresAt = getInviteExpiryDate();
+
+    await prisma.$transaction(async (tx) => {
+      await tx.unitInviteCode.updateMany({
+        where: { unitId, revokedAt: null },
+        data: { revokedAt: new Date() },
+      });
+
+      const invite = await tx.unitInviteCode.create({
+        data: {
+          unitId,
+          codeHash: hashInviteCode(inviteCode),
+          expiresAt,
+          createdById: parseId(session.userId),
+        },
+        select: { id: true },
+      });
+
+      await tx.unitConnectionRequest.create({
+        data: {
+          unitId,
+          tenantId: tenant.id,
+          inviteId: invite.id,
+          status: 'PENDING',
+        },
+      });
+    });
+
+    return { success: true, message: `Đã gửi yêu cầu kết nối đến ${tenant.fullName}` };
+  } catch (error) {
+    return { success: false, ...normalizeActionError(error, 'Không thể mời người thuê') };
   }
 }
 

@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { ArrowRight, Building2, FileText, Send } from 'lucide-react';
-import { getTenantConnectionState, requestUnitConnection } from '@/features/leases/leases.actions';
+import { ArrowRight, Building2, CalendarClock, FileText } from 'lucide-react';
+import { getTenantConnectionState } from '@/features/leases/leases.actions';
+import { listTenantInvoices } from '@/features/invoices/invoices.actions';
 
 type ConnectionState = {
   activeLeases: {
@@ -22,17 +23,62 @@ type ConnectionState = {
   }[];
 };
 
+type DueInvoice = {
+  invoiceId: string;
+  invoiceCode: string;
+  propertyName: string;
+  unitCode: string;
+  dueDate: string | null;
+  totalAmount: string;
+  remainingBalance: string;
+  status: string;
+};
+
+function formatMoney(value: string) {
+  return `${Number(value || 0).toLocaleString('vi-VN')} VNĐ`;
+}
+
+function invoiceStatusLabel(status: string) {
+  switch (status) {
+    case 'PAID':
+      return 'Đã thanh toán';
+    case 'OVERDUE':
+      return 'Quá hạn';
+    case 'PARTIAL':
+      return 'Thanh toán một phần';
+    case 'PENDING':
+      return 'Chờ duyệt thanh toán';
+    case 'UNPAID':
+    case 'ISSUED':
+      return 'Chưa thanh toán';
+    default:
+      return status;
+  }
+}
+
 export default function TenantDashboardPage() {
   const [connectionState, setConnectionState] = useState<ConnectionState | null>(null);
-  const [inviteCode, setInviteCode] = useState('');
-  const [error, setError] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const [dueInvoices, setDueInvoices] = useState<DueInvoice[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
-    const response = await getTenantConnectionState();
-    if (response.success && response.data) {
-      setConnectionState(response.data);
+    const [stateResponse, invoiceResponse] = await Promise.all([
+      getTenantConnectionState(),
+      listTenantInvoices(),
+    ]);
+    if (stateResponse.success && stateResponse.data) {
+      setConnectionState(stateResponse.data);
+    }
+    if (invoiceResponse.success && invoiceResponse.data) {
+      const outstanding = invoiceResponse.data
+        .filter((inv) => inv.status !== 'PAID' && Number(inv.remainingBalance) > 0)
+        .sort((a, b) => {
+          if (!a.dueDate) return 1;
+          if (!b.dueDate) return -1;
+          return a.dueDate.localeCompare(b.dueDate);
+        })
+        .slice(0, 6);
+      setDueInvoices(outstanding);
     }
     setLoading(false);
   };
@@ -44,23 +90,6 @@ export default function TenantDashboardPage() {
 
     return () => window.clearTimeout(timer);
   }, []);
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setSubmitting(true);
-    setError('');
-
-    const response = await requestUnitConnection({ inviteCode });
-    if (!response.success) {
-      setError(response.message || 'Không thể gửi yêu cầu kết nối');
-      setSubmitting(false);
-      return;
-    }
-
-    setInviteCode('');
-    await load();
-    setSubmitting(false);
-  };
 
   if (loading) {
     return <p className="text-sm text-brand-muted">Đang tải bảng điều khiển...</p>;
@@ -108,29 +137,57 @@ export default function TenantDashboardPage() {
         </section>
       ) : null}
 
-      <section className="shell-card mx-auto max-w-3xl p-8 md:p-10">
-        <p className="warm-badge">Kết nối căn hộ</p>
-        <h1 className="mt-5 font-headline text-4xl font-extrabold text-brand-ink">Nhập mã kết nối thuê nhà</h1>
-        <p className="mt-4 text-base leading-7 text-brand-muted">
-          Chủ nhà hoặc quản gia sẽ gửi cho bạn một mã kết nối để bắt đầu quy trình phê duyệt hợp đồng.
-        </p>
+      {dueInvoices.length > 0 ? (
+        <section className="shell-card p-7 md:p-8">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="warm-badge">Hóa đơn cần thanh toán</p>
+              <h2 className="mt-5 font-headline text-3xl font-extrabold text-brand-ink">Đến hạn thanh toán</h2>
+              <p className="mt-3 max-w-2xl text-base leading-7 text-brand-muted">
+                Theo dõi các hóa đơn chưa hoàn tất. Hóa đơn quá hạn sẽ được đánh dấu để bạn ưu tiên xử lý.
+              </p>
+            </div>
+            <Link className="btn-primary px-5 py-3.5 text-sm" href="/tenant/payments">
+              Đi đến thanh toán
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
 
-        {error ? <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div> : null}
-
-        <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
-          <input
-            className="input-shell"
-            onChange={(event) => setInviteCode(event.target.value.toUpperCase())}
-            placeholder="Nhập mã dạng UNIT-XXXX-XXXX"
-            type="text"
-            value={inviteCode}
-          />
-          <button className="btn-primary px-5 py-4 text-base" disabled={submitting} type="submit">
-            <Send className="h-4 w-4" />
-            <span>{submitting ? 'Đang gửi yêu cầu...' : 'Gửi yêu cầu kết nối'}</span>
-          </button>
-        </form>
-      </section>
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {dueInvoices.map((invoice) => {
+              const isOverdue = invoice.status === 'OVERDUE';
+              return (
+                <div className="shell-panel p-5" key={invoice.invoiceId}>
+                  <div className="flex items-center gap-3">
+                    <span className={`flex h-10 w-10 items-center justify-center rounded-2xl ${isOverdue ? 'bg-red-100 text-red-700' : 'bg-brand-primary/10 text-brand-primary-deep'}`}>
+                      <CalendarClock className="h-5 w-5" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold text-brand-ink">{invoice.propertyName}</p>
+                      <p className="truncate text-sm text-brand-muted">Căn {invoice.unitCode} · {invoice.invoiceCode}</p>
+                    </div>
+                  </div>
+                  <div className="mt-5 shell-muted p-4">
+                    <div className="flex items-center justify-between text-sm text-brand-muted">
+                      <span>Ngày đến hạn</span>
+                      <span className={`font-semibold ${isOverdue ? 'text-red-700' : 'text-brand-ink'}`}>
+                        {invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString('vi-VN') : 'Chưa rõ'}
+                      </span>
+                    </div>
+                    <div className="mt-2 flex items-center justify-between text-sm text-brand-muted">
+                      <span>Còn phải trả</span>
+                      <span className="font-semibold text-brand-ink">{formatMoney(invoice.remainingBalance)}</span>
+                    </div>
+                    <p className={`mt-3 text-xs font-semibold uppercase tracking-[0.18em] ${isOverdue ? 'text-red-700' : 'text-brand-primary-deep'}`}>
+                      {invoiceStatusLabel(invoice.status)}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
 
       {connectionState && connectionState.pendingRequests.length > 0 ? (
         <section className="mx-auto max-w-3xl shell-card p-8">

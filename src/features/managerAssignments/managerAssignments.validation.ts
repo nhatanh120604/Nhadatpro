@@ -38,6 +38,11 @@ export const managerLeavePropertySchema = z.object({
   propertyId: idSchema,
 });
 
+export const inviteManagerByPhoneSchema = z.object({
+  propertyId: idSchema,
+  phone: z.string().trim().min(1, 'Số điện thoại là bắt buộc').max(20),
+});
+
 export type PropertyInviteInput = z.infer<typeof propertyInviteSchema>;
 export type RequestPropertyManagerAssignmentInput = z.infer<
   typeof requestPropertyManagerAssignmentSchema
@@ -47,3 +52,4 @@ export type ManagerAssignmentRequestDecisionInput = z.infer<
 >;
 export type OwnerEndManagerAssignmentInput = z.infer<typeof ownerEndManagerAssignmentSchema>;
 export type ManagerLeavePropertyInput = z.infer<typeof managerLeavePropertySchema>;
+export type InviteManagerByPhoneInput = z.infer<typeof inviteManagerByPhoneSchema>;

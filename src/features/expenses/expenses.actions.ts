@@ -131,12 +131,16 @@ function propertyScopeForExpenses(
   propertyId?: string | null
 ): Prisma.PropertyWhereInput {
   const explicit = propertyId ? { id: parseId(propertyId) } : {};
+  const notArchived = { status: { not: 'ARCHIVED' as const } };
 
-  if (isAdmin(session)) return explicit;
-  if (isOwner(session)) return { ...explicit, ownerId: parseId(session.userId) };
+  if (isAdmin(session)) return { ...explicit, ...notArchived };
+  if (isOwner(session)) {
+    return { ...explicit, ...notArchived, ownerId: parseId(session.userId) };
+  }
   if (isManager(session)) {
     return {
       ...explicit,
+      ...notArchived,
       assignments: {
         some: {
           managerId: parseId(session.userId),

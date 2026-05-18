@@ -5,6 +5,7 @@ export interface SessionPayload {
   email: string;
   role: Role;
   exp: number;
+  name: string;
 }
 
 export type AuthActionResponse<T = null> = {
