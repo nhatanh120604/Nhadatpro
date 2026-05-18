@@ -81,7 +81,7 @@ export default function ManagerPropertiesPage() {
         <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brand-primary-deep">Tài sản được giao</p>
         <h1 className="mt-3 font-headline text-5xl font-extrabold text-brand-ink">Danh mục quản lý</h1>
         <p className="mt-3 max-w-2xl text-lg leading-8 text-brand-muted">
-          Xem toàn bộ bất động sản bạn đang vận hành, kiểm tra số căn đã thuê và mở nhanh màn hình xử lý yêu cầu.
+          Xem toàn bộ số căn đã thuê và mở nhanh màn hình xử lý yêu cầu.
         </p>
       </section>
 

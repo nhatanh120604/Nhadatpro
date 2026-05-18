@@ -42,10 +42,10 @@ export default function FinancePage({ roleBase }: { roleBase: 'owner' | 'manager
       <section className="shell-card p-7 md:p-8">
         <p className="warm-badge">Tài chính</p>
         <h1 className="mt-5 font-headline text-5xl font-extrabold text-brand-ink">
-          {roleBase === 'owner' ? 'Tài chính chủ nhà' : 'Tài chính quản gia'}
+          {roleBase === 'owner' ? 'Tài chính chủ nhà' : 'Quản lý tài chính'}
         </h1>
         <p className="mt-4 max-w-2xl text-base leading-7 text-brand-muted">
-          Tổng quan tháng này. Chuyển sang các tab phía dưới để xem chi tiết hóa đơn hoặc chi phí.
+          Chuyển sang các tab phía dưới để xem chi tiết hóa đơn hoặc chi phí.
         </p>
       </section>
 
